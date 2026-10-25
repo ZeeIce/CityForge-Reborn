@@ -65,6 +65,9 @@ Open an [issue](../../issues) and attach this log file:
    ```
    This builds the mod and copies it into your Mods folder.
 
+If the build says *"You must install or update .NET"*, install the
+[.NET 6 runtime](https://dotnet.microsoft.com/download/dotnet/6.0). The game's tools need it.
+
 Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
