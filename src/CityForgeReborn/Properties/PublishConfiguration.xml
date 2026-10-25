@@ -52,5 +52,5 @@ Roadmap (no particular order)
 	<ModVersion Value="1.1.0" />
 	<GameVersion Value="1.*" />
 	<ChangeLog Value="New: unlimited water, unlimited electricity and no pollution (Build tab)." />
-	<ExternalLink Type="github" Value="https://github.com/ZeeIce/CityForge-Reborn" />
+	<ExternalLink Type="github" Url="https://github.com/ZeeIce/CityForge-Reborn" />
 </Publish>
