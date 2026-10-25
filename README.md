@@ -60,6 +60,8 @@ Open an [issue](../../issues) and attach this log file:
 
 ## Roadmap
 
+*No particular order.*
+
 - [x] Unlimited water and electricity
 - [x] No pollution
 - [ ] Translations
