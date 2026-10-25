@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Colossal.Serialization.Entities;
 using Colossal.UI.Binding;
+using Game;
 using Game.UI;
 using Unity.Mathematics;
 
@@ -24,6 +26,8 @@ namespace CityForgeReborn.Systems
 
         private MoneyCheatSystem m_Money;
         private MilestoneCheatSystem m_Milestones;
+        private CitizenCheatSystem m_Citizens;
+        private BuildingCheatSystem m_Buildings;
 
         protected override void OnCreate()
         {
@@ -31,6 +35,8 @@ namespace CityForgeReborn.Systems
 
             m_Money = World.GetOrCreateSystemManaged<MoneyCheatSystem>();
             m_Milestones = World.GetOrCreateSystemManaged<MilestoneCheatSystem>();
+            m_Citizens = World.GetOrCreateSystemManaged<CitizenCheatSystem>();
+            m_Buildings = World.GetOrCreateSystemManaged<BuildingCheatSystem>();
 
             var s = Mod.Settings;
 
@@ -41,6 +47,8 @@ namespace CityForgeReborn.Systems
                     s.PanelColor = v;
             });
 
+            RegisterBool("resetCheatsOnLoad", () => s.ResetCheatsOnLoad, v => s.ResetCheatsOnLoad = v);
+
             RegisterBool("infiniteMoney", () => s.InfiniteMoney, v => s.InfiniteMoney = v);
 
             RegisterInt("milestoneTarget", () => s.MilestoneTarget, v => s.MilestoneTarget = math.max(1, v));
@@ -48,6 +56,24 @@ namespace CityForgeReborn.Systems
 
             RegisterBool("instantConstruction", () => s.InstantConstruction, v => s.InstantConstruction = v);
             RegisterInt("buildSpeed", () => s.BuildSpeed, v => s.BuildSpeed = math.clamp(v, 0, ConstructionCheatSystem.SpeedMultipliers.Length - 1));
+
+            RegisterBool("boostMoveIn", () => s.BoostMoveIn, v => s.BoostMoveIn = v);
+            RegisterInt("moveInMultiplier", () => s.MoveInMultiplier, v => s.MoveInMultiplier = math.clamp(v, 2, 10));
+            RegisterBool("boostTourists", () => s.BoostTourists, v => s.BoostTourists = v);
+            RegisterInt("touristMultiplier", () => s.TouristMultiplier, v => s.TouristMultiplier = math.clamp(v, 2, 10));
+            RegisterBool("maxHappiness", () => s.MaxHappiness, v => s.MaxHappiness = v);
+            RegisterBool("richCitizens", () => s.RichCitizens, v => s.RichCitizens = v);
+            RegisterBool("maxEducation", () => s.MaxEducation, v => s.MaxEducation = v);
+            RegisterInt("educationUneducated", () => s.EducationUneducated, v => s.EducationUneducated = Percent(v));
+            RegisterInt("educationPoor", () => s.EducationPoor, v => s.EducationPoor = Percent(v));
+            RegisterInt("educationEducated", () => s.EducationEducated, v => s.EducationEducated = Percent(v));
+            RegisterInt("educationWell", () => s.EducationWell, v => s.EducationWell = Percent(v));
+            RegisterInt("educationHigh", () => s.EducationHigh, v => s.EducationHigh = Percent(v));
+
+            RegisterBool("levelUpBuildings", () => s.LevelUpBuildings, v => s.LevelUpBuildings = v);
+            RegisterInt("buildingLevelTarget", () => s.BuildingLevelTarget, v => s.BuildingLevelTarget = math.clamp(v, 1, 5));
+            RegisterBool("keepStorageFull", () => s.KeepStorageFull, v => s.KeepStorageFull = v);
+            RegisterBool("maxEfficiency", () => s.MaxEfficiency, v => s.MaxEfficiency = v);
 
             RegisterBool("residentialOverride", () => s.ResidentialOverride, v => s.ResidentialOverride = v);
             RegisterBool("residentialForce", () => s.ResidentialForce, v => s.ResidentialForce = v);
@@ -81,6 +107,21 @@ namespace CityForgeReborn.Systems
             AddBinding(new TriggerBinding(kGroup, "advanceMilestone", () => m_Milestones.AdvanceTo(s.MilestoneTarget)));
             AddBinding(new TriggerBinding(kGroup, "unlockAllMilestones", () => m_Milestones.UnlockAll()));
             AddBinding(new TriggerBinding<int>(kGroup, "addDevTreePoints", points => m_Milestones.AddDevTreePoints(math.max(0, points))));
+            AddBinding(new TriggerBinding(kGroup, "applyEducationDistribution", () => m_Citizens.ApplyEducationDistribution()));
+            AddBinding(new TriggerBinding(kGroup, "fillStorage", () => m_Buildings.FillStorage()));
+        }
+
+        protected override void OnGameLoadingComplete(Purpose purpose, GameMode mode)
+        {
+            base.OnGameLoadingComplete(purpose, mode);
+
+            var s = Mod.Settings;
+            if (mode.IsGame() && s.ResetCheatsOnLoad)
+            {
+                Mod.Log.Info("Resetting cheats for newly loaded city.");
+                s.DisableAllCheats();
+                s.ApplyAndSave();
+            }
         }
 
         private static int Percent(int value) => math.clamp(value, 0, 100);

@@ -28,9 +28,13 @@ namespace CityForgeReborn
         [SettingsUISection(kSection, kGeneralGroup)]
         public bool ShowToolbarButton { get; set; }
 
+        [SettingsUISection(kSection, kGeneralGroup)]
+        public bool KeepAchievementsEnabled { get; set; }
+
         // ---- Panel state (hidden from the Options menu) ----
 
         [SettingsUIHidden] public string PanelColor { get; set; }
+        [SettingsUIHidden] public bool ResetCheatsOnLoad { get; set; }
 
         // ---- Money ----
 
@@ -46,6 +50,30 @@ namespace CityForgeReborn
         [SettingsUIHidden] public bool InstantConstruction { get; set; }
         /// <summary>Index into <see cref="Systems.ConstructionCheatSystem.SpeedMultipliers"/> (½×, 1×, 2×, 4×).</summary>
         [SettingsUIHidden] public int BuildSpeed { get; set; }
+
+        // ---- Population & tourism ----
+
+        [SettingsUIHidden] public bool BoostMoveIn { get; set; }
+        [SettingsUIHidden] public int MoveInMultiplier { get; set; }
+        [SettingsUIHidden] public bool BoostTourists { get; set; }
+        [SettingsUIHidden] public int TouristMultiplier { get; set; }
+        [SettingsUIHidden] public bool MaxHappiness { get; set; }
+        [SettingsUIHidden] public bool RichCitizens { get; set; }
+        [SettingsUIHidden] public bool MaxEducation { get; set; }
+
+        // Education distribution, % of citizens per level (normalised when applied).
+        [SettingsUIHidden] public int EducationUneducated { get; set; }
+        [SettingsUIHidden] public int EducationPoor { get; set; }
+        [SettingsUIHidden] public int EducationEducated { get; set; }
+        [SettingsUIHidden] public int EducationWell { get; set; }
+        [SettingsUIHidden] public int EducationHigh { get; set; }
+
+        // ---- Buildings ----
+
+        [SettingsUIHidden] public bool LevelUpBuildings { get; set; }
+        [SettingsUIHidden] public int BuildingLevelTarget { get; set; }
+        [SettingsUIHidden] public bool KeepStorageFull { get; set; }
+        [SettingsUIHidden] public bool MaxEfficiency { get; set; }
 
         // ---- Demand (values are 0–100 %) ----
 
@@ -67,10 +95,33 @@ namespace CityForgeReborn
         [SettingsUIHidden] public bool OfficeForce { get; set; }
         [SettingsUIHidden] public int OfficeDemand { get; set; }
 
+        /// <summary>Turns every ongoing cheat off (used by "Reset cheats on load").</summary>
+        public void DisableAllCheats()
+        {
+            InfiniteMoney = false;
+            KeepMilestonesUnlocked = false;
+            InstantConstruction = false;
+            BuildSpeed = 1;
+            BoostMoveIn = false;
+            BoostTourists = false;
+            MaxHappiness = false;
+            RichCitizens = false;
+            MaxEducation = false;
+            LevelUpBuildings = false;
+            KeepStorageFull = false;
+            MaxEfficiency = false;
+            ResidentialOverride = ResidentialForce = false;
+            CommercialOverride = CommercialForce = false;
+            IndustrialOverride = IndustrialForce = false;
+            OfficeOverride = OfficeForce = false;
+        }
+
         public override void SetDefaults()
         {
             ShowToolbarButton = true;
+            KeepAchievementsEnabled = false;
             PanelColor = kDefaultPanelColor;
+            ResetCheatsOnLoad = false;
 
             InfiniteMoney = false;
 
@@ -79,6 +130,25 @@ namespace CityForgeReborn
 
             InstantConstruction = false;
             BuildSpeed = 1;
+
+            BoostMoveIn = false;
+            MoveInMultiplier = 3;
+            BoostTourists = false;
+            TouristMultiplier = 3;
+            MaxHappiness = false;
+            RichCitizens = false;
+            MaxEducation = false;
+
+            EducationUneducated = 10;
+            EducationPoor = 20;
+            EducationEducated = 30;
+            EducationWell = 25;
+            EducationHigh = 15;
+
+            LevelUpBuildings = false;
+            BuildingLevelTarget = 5;
+            KeepStorageFull = false;
+            MaxEfficiency = false;
 
             ResidentialOverride = false;
             ResidentialForce = false;
@@ -119,6 +189,9 @@ namespace CityForgeReborn
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowToolbarButton)), "Show toolbar button" },
                 { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowToolbarButton)), "Show the CityForge button in the top-left corner while in a city." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.KeepAchievementsEnabled)), "Keep achievements enabled" },
+                { m_Setting.GetOptionDescLocaleID(nameof(Setting.KeepAchievementsEnabled)), "Allow Steam/Paradox achievements to unlock while mods are active." },
             };
         }
 

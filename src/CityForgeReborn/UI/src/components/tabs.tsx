@@ -77,16 +77,108 @@ const SPEEDS = ["½×", "1×", "2×", "4×"];
 export const BuildTab = () => {
     const [instant, setInstant] = useBool("instantConstruction");
     const [speed, setSpeed] = useInt("buildSpeed", 1);
+    const [levelUp, setLevelUp] = useBool("levelUpBuildings");
+    const [levelTarget, setLevelTarget] = useInt("buildingLevelTarget", 5);
+    const [keepFull, setKeepFull] = useBool("keepStorageFull");
+    const [maxEfficiency, setMaxEfficiency] = useBool("maxEfficiency");
 
     return (
-        <Card title="Construction" icon="⚒">
-            <Toggle label="Instant construction" value={instant} onChange={setInstant} />
-            {instant && <Notice text="Buildings finish the moment they are placed." />}
-            <div className={instant ? "cf-dimmed" : ""}>
-                <div className="cf-row__hint cf-spaced">Build speed</div>
-                <Segmented options={SPEEDS} value={speed} onChange={setSpeed} />
-            </div>
-        </Card>
+        <>
+            <Card title="Construction" icon="⚒">
+                <Toggle label="Instant construction" value={instant} onChange={setInstant} />
+                {instant && <Notice text="Buildings finish the moment they are placed." />}
+                <div className={instant ? "cf-dimmed" : ""}>
+                    <div className="cf-row__hint cf-spaced">Build speed</div>
+                    <Segmented options={SPEEDS} value={speed} onChange={setSpeed} />
+                </div>
+            </Card>
+
+            <Card title="Buildings" icon="▦">
+                <div className="cf-row__hint cf-spaced">Target level</div>
+                <Segmented options={LEVELS} value={levelTarget - 1} onChange={(i) => setLevelTarget(i + 1)} />
+                <Toggle
+                    label={`Level up to level ${levelTarget}`}
+                    hint="Zoned buildings level up one step at a time until they reach the target"
+                    value={levelUp}
+                    onChange={setLevelUp}
+                />
+                <Toggle
+                    label="Max building efficiency"
+                    hint="Companies and services run at full efficiency"
+                    value={maxEfficiency}
+                    onChange={setMaxEfficiency}
+                />
+            </Card>
+
+            <Card title="Storage" icon="▤">
+                <ButtonRow>
+                    <Button label="Fill all storage" variant="accent" onClick={actions.fillStorage} />
+                </ButtonRow>
+                <Toggle label="Keep storage full" value={keepFull} onChange={setKeepFull} />
+            </Card>
+        </>
+    );
+};
+
+const LEVELS = ["1", "2", "3", "4", "5"];
+
+const multiplier = (v: number) => `${v}×`;
+
+const BoostToggle = ({ label, toggleKey, multiplierKey }: { label: string; toggleKey: string; multiplierKey: string }) => {
+    const [enabled, setEnabled] = useBool(toggleKey);
+    const [value, setValue] = useInt(multiplierKey, 3);
+    return (
+        <>
+            <Toggle label={label} value={enabled} onChange={setEnabled} />
+            {enabled && <Slider label="Multiplier" value={value} min={2} max={10} format={multiplier} onCommit={setValue} />}
+        </>
+    );
+};
+
+const EDUCATION_LEVELS = [
+    { key: "educationUneducated", label: "Uneducated" },
+    { key: "educationPoor", label: "Poorly educated" },
+    { key: "educationEducated", label: "Educated" },
+    { key: "educationWell", label: "Well educated" },
+    { key: "educationHigh", label: "Highly educated" },
+];
+
+export const PeopleTab = () => {
+    const [maxHappiness, setMaxHappiness] = useBool("maxHappiness");
+    const [rich, setRich] = useBool("richCitizens");
+    const [maxEducation, setMaxEducation] = useBool("maxEducation");
+
+    return (
+        <>
+            <Card title="Growth" icon="⇡">
+                <BoostToggle label="Boost move-in rate" toggleKey="boostMoveIn" multiplierKey="moveInMultiplier" />
+                <BoostToggle label="Boost tourists" toggleKey="boostTourists" multiplierKey="touristMultiplier" />
+            </Card>
+
+            <Card title="Citizens" icon="☺">
+                <Toggle label="Max happiness" hint="Well-being and health held at maximum" value={maxHappiness} onChange={setMaxHappiness} />
+                <Toggle label="Rich citizens" hint="Every household keeps at least 500,000" value={rich} onChange={setRich} />
+                <Toggle label="Max education" hint="Every citizen is highly educated" value={maxEducation} onChange={setMaxEducation} />
+            </Card>
+
+            <Card title="Education distribution" icon="✎" defaultOpen={false}>
+                {maxEducation && <Notice tone="warning" text="Turn off Max education to use a custom distribution." />}
+                <div className={maxEducation ? "cf-dimmed" : ""}>
+                    {EDUCATION_LEVELS.map((level) => (
+                        <ZoneSlider key={level.key} binding={level.key} label={level.label} />
+                    ))}
+                    <div className="cf-row__hint cf-spaced">Values are relative weights; they don't need to add up to 100.</div>
+                    <ButtonRow>
+                        <Button
+                            label="Apply to all citizens"
+                            variant="accent"
+                            disabled={maxEducation}
+                            onClick={actions.applyEducationDistribution}
+                        />
+                    </ButtonRow>
+                </div>
+            </Card>
+        </>
     );
 };
 
@@ -141,39 +233,50 @@ export const DEFAULT_PANEL_COLOR = "#161b22";
 const PRESETS = [DEFAULT_PANEL_COLOR, "#1e1b2e", "#13221c", "#2a1a14", "#0f1f2e", "#26222a", "#1a1a1a", "#2b2410"];
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
-export const StyleTab = () => {
+export const SettingsTab = () => {
     const [color, setColor] = useString("panelColor", DEFAULT_PANEL_COLOR);
+    const [resetOnLoad, setResetOnLoad] = useBool("resetCheatsOnLoad");
     const [draft, setDraft] = useState<string | null>(null);
     const text = draft ?? color;
 
     return (
-        <Card title="Appearance" icon="◐">
-            <div className="cf-row__hint cf-spaced">Panel colour</div>
-            <div className="cf-swatches">
-                {PRESETS.map((preset) => (
-                    <div
-                        key={preset}
-                        className={`cf-swatch${preset.toLowerCase() === color.toLowerCase() ? " cf-swatch--active" : ""}`}
-                        style={{ backgroundColor: preset }}
-                        onClick={() => setColor(preset)}
-                    />
-                ))}
-            </div>
-            <div className="cf-hex">
-                <div className="cf-hex__preview" style={{ backgroundColor: HEX.test(text) ? text : color }} />
-                <input
-                    className={`cf-hex__input${HEX.test(text) ? "" : " cf-hex__input--invalid"}`}
-                    value={text}
-                    maxLength={7}
-                    onChange={(e) => {
-                        const next = e.target.value;
-                        setDraft(next);
-                        if (HEX.test(next)) setColor(next);
-                    }}
-                    onBlur={() => setDraft(null)}
+        <>
+            <Card title="General" icon="⚙">
+                <Toggle
+                    label="Reset cheats on load"
+                    hint="Turns every cheat off whenever a city is loaded"
+                    value={resetOnLoad}
+                    onChange={setResetOnLoad}
                 />
-                <Button label="Reset" onClick={() => setColor(DEFAULT_PANEL_COLOR)} />
-            </div>
-        </Card>
+            </Card>
+            <Card title="Appearance" icon="◐">
+                <div className="cf-row__hint cf-spaced">Panel colour</div>
+                <div className="cf-swatches">
+                    {PRESETS.map((preset) => (
+                        <div
+                            key={preset}
+                            className={`cf-swatch${preset.toLowerCase() === color.toLowerCase() ? " cf-swatch--active" : ""}`}
+                            style={{ backgroundColor: preset }}
+                            onClick={() => setColor(preset)}
+                        />
+                    ))}
+                </div>
+                <div className="cf-hex">
+                    <div className="cf-hex__preview" style={{ backgroundColor: HEX.test(text) ? text : color }} />
+                    <input
+                        className={`cf-hex__input${HEX.test(text) ? "" : " cf-hex__input--invalid"}`}
+                        value={text}
+                        maxLength={7}
+                        onChange={(e) => {
+                            const next = e.target.value;
+                            setDraft(next);
+                            if (HEX.test(next)) setColor(next);
+                        }}
+                        onBlur={() => setDraft(null)}
+                    />
+                    <Button label="Reset" onClick={() => setColor(DEFAULT_PANEL_COLOR)} />
+                </div>
+            </Card>
+        </>
     );
 };

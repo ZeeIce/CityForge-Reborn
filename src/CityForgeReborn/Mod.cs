@@ -26,9 +26,13 @@ namespace CityForgeReborn
             updateSystem.UpdateAt<MoneyCheatSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<MilestoneCheatSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<ConstructionCheatSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<CitizenCheatSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<PopulationBoostSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<BuildingCheatSystem>(SystemUpdatePhase.GameSimulation);
             // Demand must be overwritten right before the zone spawner reads it.
             updateSystem.UpdateBefore<DemandOverrideSystem, ZoneSpawnSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<CityForgeUISystem>(SystemUpdatePhase.UIUpdate);
+            updateSystem.UpdateAt<AchievementSystem>(SystemUpdatePhase.UIUpdate);
         }
 
         public void OnDispose()
