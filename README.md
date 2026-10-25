@@ -64,6 +64,18 @@ Open an [issue](../../issues) and attach this log file:
 - [x] No pollution
 - [ ] Translations
 - [ ] Time of day and weather control
+- [ ] Instant garbage, crime and fire cleanup
+- [ ] Unlimited healthcare and education capacity
+- [ ] Max land value
+- [ ] Free building upkeep
+- [ ] Traffic tools: remove stuck vehicles, no accidents
+- [ ] Disasters on/off
+- [ ] Hotkey to open the panel
+- [ ] Save and load cheat presets
+- [ ] Status bar showing active cheats
+- [ ] Lock the achievements option while a city is loaded
+- [ ] Smoother instant construction on big builds
+- [ ] Retry saving settings if another mod is saving
 
 ## Build it yourself
 
