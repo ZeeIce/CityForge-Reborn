@@ -24,6 +24,8 @@ Everything was rewritten from the ground up. Please send bugs and feedback here,
 - Instant construction, or build at ½× to 4× speed
 - Level up buildings, max out efficiency
 - Fill all storage, or keep it full
+- Unlimited water and electricity
+- No pollution
 
 **People**
 - Boost move-ins and tourists (up to 10×)
@@ -60,7 +62,6 @@ Open an [issue](../../issues) and attach this log file:
 
 - Translations
 - Time of day and weather control
-- Unlimited water and power, no pollution
 
 ## Build it yourself
 

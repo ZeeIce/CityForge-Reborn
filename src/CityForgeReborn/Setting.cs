@@ -75,6 +75,12 @@ namespace CityForgeReborn
         [SettingsUIHidden] public bool KeepStorageFull { get; set; }
         [SettingsUIHidden] public bool MaxEfficiency { get; set; }
 
+        // ---- City services ----
+
+        [SettingsUIHidden] public bool UnlimitedWater { get; set; }
+        [SettingsUIHidden] public bool UnlimitedElectricity { get; set; }
+        [SettingsUIHidden] public bool NoPollution { get; set; }
+
         // ---- Demand (values are 0–100 %) ----
 
         [SettingsUIHidden] public bool ResidentialOverride { get; set; }
@@ -110,6 +116,9 @@ namespace CityForgeReborn
             LevelUpBuildings = false;
             KeepStorageFull = false;
             MaxEfficiency = false;
+            UnlimitedWater = false;
+            UnlimitedElectricity = false;
+            NoPollution = false;
             ResidentialOverride = ResidentialForce = false;
             CommercialOverride = CommercialForce = false;
             IndustrialOverride = IndustrialForce = false;
@@ -149,6 +158,10 @@ namespace CityForgeReborn
             BuildingLevelTarget = 5;
             KeepStorageFull = false;
             MaxEfficiency = false;
+
+            UnlimitedWater = false;
+            UnlimitedElectricity = false;
+            NoPollution = false;
 
             ResidentialOverride = false;
             ResidentialForce = false;

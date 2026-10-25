@@ -81,6 +81,9 @@ export const BuildTab = () => {
     const [levelTarget, setLevelTarget] = useInt("buildingLevelTarget", 5);
     const [keepFull, setKeepFull] = useBool("keepStorageFull");
     const [maxEfficiency, setMaxEfficiency] = useBool("maxEfficiency");
+    const [unlimitedWater, setUnlimitedWater] = useBool("unlimitedWater");
+    const [unlimitedElectricity, setUnlimitedElectricity] = useBool("unlimitedElectricity");
+    const [noPollution, setNoPollution] = useBool("noPollution");
 
     return (
         <>
@@ -107,6 +110,27 @@ export const BuildTab = () => {
                     hint="Companies and services run at full efficiency"
                     value={maxEfficiency}
                     onChange={setMaxEfficiency}
+                />
+            </Card>
+
+            <Card title="City services" icon="⚡">
+                <Toggle
+                    label="Unlimited water"
+                    hint="Every building gets full water and sewage, no pipes needed"
+                    value={unlimitedWater}
+                    onChange={setUnlimitedWater}
+                />
+                <Toggle
+                    label="Unlimited electricity"
+                    hint="Every building gets full power, no power plants needed"
+                    value={unlimitedElectricity}
+                    onChange={setUnlimitedElectricity}
+                />
+                <Toggle
+                    label="No pollution"
+                    hint="Clears air, ground, noise and groundwater pollution"
+                    value={noPollution}
+                    onChange={setNoPollution}
                 />
             </Card>
 

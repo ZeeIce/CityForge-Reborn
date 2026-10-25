@@ -29,6 +29,9 @@ namespace CityForgeReborn
             updateSystem.UpdateAt<CitizenCheatSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<PopulationBoostSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<BuildingCheatSystem>(SystemUpdatePhase.GameSimulation);
+            updateSystem.UpdateAt<PollutionCheatSystem>(SystemUpdatePhase.GameSimulation);
+            // Must run right after the game hands out electricity.
+            updateSystem.UpdateAfter<UtilityCheatSystem, DispatchElectricitySystem>(SystemUpdatePhase.GameSimulation);
             // Demand must be overwritten right before the zone spawner reads it.
             updateSystem.UpdateBefore<DemandOverrideSystem, ZoneSpawnSystem>(SystemUpdatePhase.GameSimulation);
             // Extra spawner run for Force Build, using the demand values set above.

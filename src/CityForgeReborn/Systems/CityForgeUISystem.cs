@@ -75,6 +75,10 @@ namespace CityForgeReborn.Systems
             RegisterBool("keepStorageFull", () => s.KeepStorageFull, v => s.KeepStorageFull = v);
             RegisterBool("maxEfficiency", () => s.MaxEfficiency, v => s.MaxEfficiency = v);
 
+            RegisterBool("unlimitedWater", () => s.UnlimitedWater, v => s.UnlimitedWater = v);
+            RegisterBool("unlimitedElectricity", () => s.UnlimitedElectricity, v => s.UnlimitedElectricity = v);
+            RegisterBool("noPollution", () => s.NoPollution, v => s.NoPollution = v);
+
             RegisterBool("residentialOverride", () => s.ResidentialOverride, v => s.ResidentialOverride = v);
             RegisterBool("residentialForce", () => s.ResidentialForce, v => s.ResidentialForce = v);
             RegisterInt("residentialLow", () => s.ResidentialLow, v => s.ResidentialLow = Percent(v));
