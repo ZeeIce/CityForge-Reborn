@@ -28,7 +28,6 @@
     <Reference Include="Unity.Collections"><Private>false</Private></Reference>
     <Reference Include="Unity.Entities"><Private>false</Private></Reference>
     <Reference Include="Unity.Mathematics"><Private>false</Private></Reference>
-    <Reference Include="Unity.Jobs"><Private>false</Private></Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -44,11 +43,14 @@
     <None Include="$(ModTargetsFile)" Link="Properties\Mod.targets" />
   </ItemGroup>
 
-  <!-- Build the in-game panel (React/TypeScript) after the C# build. -->
+  <!-- Build the in-game panel (React/TypeScript). This must run after the toolchain's
+       DeployWIP, which clears the deploy folder, and the deploy folder is what gets published. -->
   <Target Name="InstallUI" BeforeTargets="BuildUI" Condition="!Exists('UI\node_modules')">
     <Exec Command="npm install" WorkingDirectory="UI" />
   </Target>
-  <Target Name="BuildUI" AfterTargets="AfterBuild">
-    <Exec Command="npm run build" WorkingDirectory="UI" />
+  <Target Name="BuildUI" AfterTargets="DeployWIP">
+    <!-- An empty CSII_USERDATAPATH makes webpack write to UI\build. -->
+    <Exec Command="npm run build" WorkingDirectory="UI" EnvironmentVariables="CSII_USERDATAPATH=" />
+    <Copy SourceFiles="UI\build\$(AssemblyName).mjs" DestinationFolder="$(DeployDir)" />
   </Target>
 </Project>
