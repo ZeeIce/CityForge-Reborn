@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- New: unlimited water
+- New: unlimited electricity
+- New: no pollution (air, ground, noise and groundwater)
+
 ## 1.0.0
 
 First public release.

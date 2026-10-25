@@ -6,7 +6,7 @@
     <Configurations>Debug;Release</Configurations>
     <RootNamespace>CityForgeReborn</RootNamespace>
     <AssemblyName>CityForgeReborn</AssemblyName>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <PublishConfigurationPath>Properties\PublishConfiguration.xml</PublishConfigurationPath>
   </PropertyGroup>
 
