@@ -193,13 +193,13 @@ const ZoneCard = ({ title, zone, levels }: { title: string; zone: string; levels
             <Toggle label="Override demand" value={enabled} onChange={setEnabled} />
             <Toggle
                 label="Force build"
-                hint="Buildings spawn regardless of demand"
+                hint="Buildings spawn regardless of demand, land value or suitability"
                 tone="warning"
                 value={force}
                 onChange={setForce}
             />
             {force ? (
-                <Notice tone="warning" text="Force build is on: demand is held at 100%." />
+                <Notice tone="warning" text="Force build is on: buildings keep spawning regardless of demand or lot suitability." />
             ) : (
                 enabled && levels.map((level) => <ZoneSlider key={level.key} binding={level.key} label={level.label} />)
             )}

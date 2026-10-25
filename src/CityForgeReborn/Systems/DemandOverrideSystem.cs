@@ -34,11 +34,12 @@ namespace CityForgeReborn.Systems
             var commercial = World.GetOrCreateSystemManaged<CommercialDemandSystem>();
             var industrial = World.GetOrCreateSystemManaged<IndustrialDemandSystem>();
 
-            m_Residential = new DemandTarget(residential, name => true);
-            m_Commercial = new DemandTarget(commercial, name => true);
-            // The industrial system also computes office and storage demand.
-            m_Industrial = new DemandTarget(industrial, name => name.IndexOf("Office", StringComparison.Ordinal) < 0);
-            m_Office = new DemandTarget(industrial, name => name.IndexOf("Office", StringComparison.Ordinal) >= 0);
+            m_Residential = new DemandTarget(residential, name => true, name => true, index => true);
+            m_Commercial = new DemandTarget(commercial, name => true, name => true, index => true);
+            // The industrial system also computes office and storage demand. Offices share its
+            // per-resource arrays (the ones the zone spawner reads), split by resource.
+            m_Industrial = new DemandTarget(industrial, name => !IsOfficeName(name), name => true, index => !ForceBuildSystem.IsOffice(index));
+            m_Office = new DemandTarget(industrial, IsOfficeName, name => name.IndexOf("Storage", StringComparison.Ordinal) < 0, ForceBuildSystem.IsOffice);
         }
 
         protected override void OnUpdate()
@@ -63,6 +64,8 @@ namespace CityForgeReborn.Systems
                 m_Office.Apply(new int3(s.OfficeForce ? kForced : s.OfficeDemand));
         }
 
+        private static bool IsOfficeName(string name) => name.IndexOf("Office", StringComparison.Ordinal) >= 0;
+
         private class DemandTarget
         {
             private static readonly string[] kDemandNames = { "BuildingDemand", "CompanyDemand", "HouseholdDemand", "ResourceDemand" };
@@ -71,10 +74,15 @@ namespace CityForgeReborn.Systems
             private readonly List<FieldInfo> m_Values = new List<FieldInfo>();
             private readonly List<FieldInfo> m_Arrays = new List<FieldInfo>();
             private readonly List<FieldInfo> m_Dependencies = new List<FieldInfo>();
+            private readonly Func<int, bool> m_IndexFilter;
 
-            public DemandTarget(object system, Func<string, bool> filter)
+            /// <param name="valueFilter">Which NativeValue fields (by name) belong to this zone.</param>
+            /// <param name="arrayFilter">Which per-resource arrays (by name) belong to this zone.</param>
+            /// <param name="indexFilter">Which resource indices of those arrays belong to this zone.</param>
+            public DemandTarget(object system, Func<string, bool> valueFilter, Func<string, bool> arrayFilter, Func<int, bool> indexFilter)
             {
                 m_System = system;
+                m_IndexFilter = indexFilter;
                 const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 
                 foreach (var field in system.GetType().GetFields(flags))
@@ -87,12 +95,15 @@ namespace CityForgeReborn.Systems
                         continue;
                     }
 
-                    if (!IsDemandName(field.Name) || !filter(field.Name))
+                    if (!IsDemandName(field.Name))
                         continue;
 
                     if (type == typeof(NativeArray<int>))
-                        m_Arrays.Add(field);
-                    else if (type.IsGenericType && type.Name.StartsWith("NativeValue", StringComparison.Ordinal))
+                    {
+                        if (arrayFilter(field.Name))
+                            m_Arrays.Add(field);
+                    }
+                    else if (type.IsGenericType && type.Name.StartsWith("NativeValue", StringComparison.Ordinal) && valueFilter(field.Name))
                         m_Values.Add(field);
                 }
 
@@ -142,7 +153,10 @@ namespace CityForgeReborn.Systems
                     if (!array.IsCreated)
                         continue;
                     for (int i = 0; i < array.Length; i++)
-                        array[i] = average;
+                    {
+                        if (m_IndexFilter(i))
+                            array[i] = average;
+                    }
                 }
             }
 

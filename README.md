@@ -86,6 +86,9 @@ game type/field names that need checking with a decompiler (ILSpy/dnSpy on `Game
 - `StorageCompanyData.m_StoredResources`, `StorageLimitData.m_Limit`
 - `PlatformManager.achievementsEnabled` (`Colossal.PSI.Common`)
 - Move-in/tourist boost looks up `HouseholdSpawnSystem` / `TouristSpawnSystem` by name and logs if they're missing.
+- Force Build: `ForceBuildSystem` runs the game's zone spawner an extra time with its
+  `debugFastSpawn` flag on (skips demand and suitability checks), with non-forced zones
+  blocked for that run. It logs a warning and falls back to 100% demand if the flag is missing.
 - Demand: `DemandOverrideSystem` finds the demand systems' fields by name at runtime and
   logs which ones it found — check the log if demand overrides don't seem to work.
 
