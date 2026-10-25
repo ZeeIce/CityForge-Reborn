@@ -1,6 +1,5 @@
 <Publish>
-	<!-- Leave ModId empty for the first publish; Paradox Mods fills it in. -->
-	<ModId Value="" />
+	<ModId Value="164900" />
 	<DisplayName Value="CityForge Reborn" />
 	<ShortDescription Value="Cheat and sandbox panel: money, milestones, demand, Force Build and more." />
 	<LongDescription>
