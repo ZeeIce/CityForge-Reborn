@@ -31,6 +31,8 @@ namespace CityForgeReborn
             updateSystem.UpdateAt<BuildingCheatSystem>(SystemUpdatePhase.GameSimulation);
             // Demand must be overwritten right before the zone spawner reads it.
             updateSystem.UpdateBefore<DemandOverrideSystem, ZoneSpawnSystem>(SystemUpdatePhase.GameSimulation);
+            // Extra spawner run for Force Build, using the demand values set above.
+            updateSystem.UpdateAfter<ForceBuildSystem, DemandOverrideSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<CityForgeUISystem>(SystemUpdatePhase.UIUpdate);
             updateSystem.UpdateAt<AchievementSystem>(SystemUpdatePhase.UIUpdate);
         }
