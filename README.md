@@ -7,6 +7,12 @@ Click the **◆** button in the top-left corner of the game to open it.
 
 *Panel preview with sample numbers.*
 
+## About "Reborn"
+
+This is a brand-new mod inspired by the original CityForge.
+It is not made by, or connected to, the original author, and it contains none of the original's code.
+Everything was rewritten from the ground up. Please send bugs and feedback here, not to the original mod.
+
 ## What it does
 
 **Economy**
