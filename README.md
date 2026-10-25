@@ -43,7 +43,7 @@ Everything was rewritten from the ground up. Please send bugs and feedback here,
 
 ## Install
 
-**Paradox Mods:** subscribe in the game's mod menu.
+**Paradox Mods:** subscribe on the [mod page](https://mods.paradoxplaza.com/mods/164900/Windows) or in the game's mod menu.
 
 **Manual:** download the zip from [Releases](../../releases) and unzip it into:
 ```
