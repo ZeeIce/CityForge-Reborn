@@ -1,0 +1,436 @@
+/*
+ * CityForge Reborn panel styles.
+ * The game's UI engine (Coherent Gameface) supports flexbox but not CSS grid or
+ * flex `gap`, so spacing is done with margins.
+ */
+
+/* ---------- Toolbar button ---------- */
+
+.cf-toolbar-button {
+    width: 40rem;
+    height: 40rem;
+    margin-left: 6rem;
+    border-radius: 8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20rem;
+    color: #ffb15c;
+    background-color: rgba(22, 27, 34, 0.85);
+    border: 2rem solid rgba(255, 177, 92, 0.35);
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.cf-toolbar-button:hover,
+.cf-toolbar-button--active {
+    background-color: rgba(255, 140, 50, 0.25);
+    border-color: #ff9a3c;
+}
+
+/* ---------- Panel shell ---------- */
+
+.cf-panel {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12rem;
+    border: 1rem solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12rem 40rem rgba(0, 0, 0, 0.55);
+    color: #e6e9ef;
+    font-size: 14rem;
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+.cf-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12rem 16rem;
+    background: linear-gradient(90deg, rgba(255, 140, 50, 0.18), rgba(255, 140, 50, 0));
+    border-bottom: 1rem solid rgba(255, 255, 255, 0.06);
+    cursor: move;
+}
+
+.cf-panel__brand {
+    display: flex;
+    align-items: baseline;
+}
+
+.cf-panel__logo {
+    color: #ff9a3c;
+    font-size: 18rem;
+    margin-right: 8rem;
+}
+
+.cf-panel__title {
+    font-size: 18rem;
+    font-weight: bold;
+    letter-spacing: 1rem;
+    text-transform: uppercase;
+}
+
+.cf-panel__subtitle {
+    margin-left: 6rem;
+    color: #ff9a3c;
+    font-size: 12rem;
+    text-transform: uppercase;
+    letter-spacing: 2rem;
+}
+
+.cf-panel__close {
+    width: 28rem;
+    height: 28rem;
+    border-radius: 14rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(230, 233, 239, 0.7);
+    cursor: pointer;
+}
+
+.cf-panel__close:hover {
+    background-color: rgba(255, 90, 90, 0.25);
+    color: #ffffff;
+}
+
+.cf-panel__content {
+    flex: 1;
+    overflow-y: scroll;
+    padding: 12rem 14rem 20rem 14rem;
+}
+
+.cf-panel__resize {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 18rem;
+    height: 18rem;
+    cursor: nwse-resize;
+    border-right: 3rem solid rgba(255, 154, 60, 0.6);
+    border-bottom: 3rem solid rgba(255, 154, 60, 0.6);
+    border-bottom-right-radius: 12rem;
+}
+
+/* ---------- Tabs ---------- */
+
+.cf-tabs {
+    display: flex;
+    padding: 0 10rem;
+    border-bottom: 1rem solid rgba(255, 255, 255, 0.06);
+}
+
+.cf-tab {
+    padding: 10rem 14rem;
+    color: rgba(230, 233, 239, 0.55);
+    text-transform: uppercase;
+    letter-spacing: 1rem;
+    font-size: 12rem;
+    border-bottom: 2rem solid transparent;
+    cursor: pointer;
+}
+
+.cf-tab:hover {
+    color: #e6e9ef;
+}
+
+.cf-tab--active {
+    color: #ffb15c;
+    border-bottom-color: #ff9a3c;
+}
+
+/* ---------- Cards ---------- */
+
+.cf-card {
+    margin-bottom: 12rem;
+    border-radius: 10rem;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1rem solid rgba(255, 255, 255, 0.06);
+}
+
+.cf-card__header {
+    display: flex;
+    align-items: center;
+    padding: 10rem 12rem;
+    cursor: pointer;
+}
+
+.cf-card__icon {
+    width: 22rem;
+    color: #ff9a3c;
+}
+
+.cf-card__title {
+    flex: 1;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1rem;
+    font-size: 12rem;
+}
+
+.cf-card__chevron {
+    color: rgba(230, 233, 239, 0.5);
+}
+
+.cf-card__body {
+    padding: 0 12rem 12rem 12rem;
+}
+
+/* ---------- Rows & toggles ---------- */
+
+.cf-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8rem 0;
+}
+
+.cf-toggle-row {
+    cursor: pointer;
+}
+
+.cf-row__text {
+    flex: 1;
+    margin-right: 12rem;
+}
+
+.cf-row__label {
+    color: #e6e9ef;
+}
+
+.cf-row__hint {
+    color: rgba(230, 233, 239, 0.5);
+    font-size: 12rem;
+}
+
+.cf-spaced {
+    margin: 6rem 0;
+}
+
+.cf-dimmed {
+    opacity: 0.4;
+}
+
+.cf-stat {
+    margin-bottom: 6rem;
+    color: rgba(230, 233, 239, 0.7);
+}
+
+.cf-switch {
+    width: 40rem;
+    height: 22rem;
+    border-radius: 11rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    position: relative;
+    transition: background-color 0.15s;
+}
+
+.cf-switch__knob {
+    position: absolute;
+    top: 3rem;
+    left: 3rem;
+    width: 16rem;
+    height: 16rem;
+    border-radius: 8rem;
+    background-color: #c9ced8;
+    transition: left 0.15s;
+}
+
+.cf-switch--on .cf-switch__knob {
+    left: 21rem;
+    background-color: #ffffff;
+}
+
+.cf-switch--accent {
+    background-color: #2f9e8f;
+}
+
+.cf-switch--warning {
+    background-color: #e0782a;
+}
+
+/* ---------- Buttons ---------- */
+
+.cf-btn-row {
+    display: flex;
+    margin: 0 -3rem 6rem -3rem;
+}
+
+.cf-btn {
+    flex: 1;
+    margin: 0 3rem;
+    padding: 8rem 6rem;
+    border-radius: 6rem;
+    border: 1rem solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.06);
+    color: #e6e9ef;
+    font-size: 13rem;
+    text-align: center;
+    cursor: pointer;
+}
+
+.cf-btn:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.cf-btn--positive {
+    color: #7ee2a8;
+    border-color: rgba(126, 226, 168, 0.3);
+    background-color: rgba(46, 160, 100, 0.15);
+}
+
+.cf-btn--negative {
+    color: #ff9a9a;
+    border-color: rgba(255, 120, 120, 0.3);
+    background-color: rgba(200, 60, 60, 0.15);
+}
+
+.cf-btn--accent {
+    color: #ffc78a;
+    border-color: rgba(255, 154, 60, 0.4);
+    background-color: rgba(255, 140, 50, 0.18);
+}
+
+.cf-btn--disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* ---------- Segmented control ---------- */
+
+.cf-segmented {
+    display: flex;
+    border-radius: 6rem;
+    border: 1rem solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.cf-segmented__item {
+    flex: 1;
+    padding: 8rem 0;
+    text-align: center;
+    color: rgba(230, 233, 239, 0.65);
+    cursor: pointer;
+}
+
+.cf-segmented__item:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.cf-segmented__item--active {
+    color: #ffffff;
+    background-color: rgba(255, 140, 50, 0.35);
+}
+
+/* ---------- Slider ---------- */
+
+.cf-slider {
+    padding: 6rem 0 10rem 0;
+}
+
+.cf-slider__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8rem;
+}
+
+.cf-slider__value {
+    color: #ffb15c;
+    font-size: 12rem;
+}
+
+.cf-slider__track {
+    position: relative;
+    height: 6rem;
+    border-radius: 3rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+}
+
+.cf-slider__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 3rem;
+    background-color: #ff9a3c;
+}
+
+.cf-slider__thumb {
+    position: absolute;
+    top: -5rem;
+    width: 16rem;
+    height: 16rem;
+    margin-left: -8rem;
+    border-radius: 8rem;
+    background-color: #ffffff;
+    box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Notices ---------- */
+
+.cf-notice {
+    margin: 4rem 0 8rem 0;
+    padding: 8rem 10rem;
+    border-radius: 6rem;
+    font-size: 12rem;
+}
+
+.cf-notice--info {
+    color: #8fe0d4;
+    background-color: rgba(47, 158, 143, 0.15);
+}
+
+.cf-notice--warning {
+    color: #ffc78a;
+    background-color: rgba(224, 120, 42, 0.15);
+}
+
+/* ---------- Appearance ---------- */
+
+.cf-swatches {
+    display: flex;
+    margin-bottom: 10rem;
+}
+
+.cf-swatch {
+    width: 28rem;
+    height: 28rem;
+    margin-right: 8rem;
+    border-radius: 14rem;
+    border: 2rem solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+}
+
+.cf-swatch--active {
+    border-color: #ff9a3c;
+}
+
+.cf-hex {
+    display: flex;
+    align-items: center;
+}
+
+.cf-hex__preview {
+    width: 28rem;
+    height: 28rem;
+    border-radius: 6rem;
+    margin-right: 8rem;
+    border: 1rem solid rgba(255, 255, 255, 0.2);
+}
+
+.cf-hex__input {
+    width: 110rem;
+    margin-right: 8rem;
+    padding: 6rem 8rem;
+    border-radius: 6rem;
+    border: 1rem solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #e6e9ef;
+    font-size: 13rem;
+}
+
+.cf-hex__input--invalid {
+    border-color: rgba(255, 120, 120, 0.6);
+}
