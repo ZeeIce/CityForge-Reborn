@@ -44,7 +44,7 @@ namespace CityForgeReborn.Systems
                 ComponentType.Exclude<Deleted>(),
                 ComponentType.Exclude<Temp>());
             m_StorageQuery = GetEntityQuery(
-                ComponentType.ReadOnly<StorageCompany>(),
+                ComponentType.ReadOnly<Game.Companies.StorageCompany>(),
                 ComponentType.ReadOnly<PrefabRef>(),
                 ComponentType.ReadWrite<Resources>(),
                 ComponentType.Exclude<Deleted>(),
