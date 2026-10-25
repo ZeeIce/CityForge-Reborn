@@ -1,0 +1,35 @@
+<Publish>
+	<!-- Leave ModId empty for the first publish; Paradox Mods fills it in. -->
+	<ModId Value="" />
+	<DisplayName Value="CityForge Reborn" />
+	<ShortDescription Value="Cheat and sandbox panel: money, milestones, demand, Force Build and more." />
+	<LongDescription>
+A cheat and sandbox panel. Click the ◆ button in the top-left corner to open it.
+
+Economy
+- Add or remove money, or infinite money
+- Jump to any milestone, or unlock them all
+- Development tree points
+
+Build
+- Instant construction, or ½× to 4× build speed
+- Level up buildings, max efficiency
+- Fill storage, or keep it full
+
+People
+- Boost move-ins and tourists (up to 10×)
+- Max happiness, rich citizens, max education
+
+Demand
+- Set demand for each zone
+- Force Build: buildings spawn even with no demand or a poor lot
+
+Also: panel colours, reset cheats on load, keep achievements on.
+	</LongDescription>
+	<Thumbnail Value="Properties/Thumbnail.png" />
+	<Tag Value="Code Mod" />
+	<ModVersion Value="1.0.0" />
+	<GameVersion Value="1.*" />
+	<ChangeLog Value="First public release." />
+	<ExternalLink Type="github" Value="https://github.com/ZeeIce/CityForge-Reborn" />
+</Publish>
