@@ -38,4 +38,6 @@ export const actions = {
     advanceMilestone: () => trigger(GROUP, "advanceMilestone"),
     unlockAllMilestones: () => trigger(GROUP, "unlockAllMilestones"),
     addDevTreePoints: (points: number) => trigger(GROUP, "addDevTreePoints", points),
+    applyEducationDistribution: () => trigger(GROUP, "applyEducationDistribution"),
+    fillStorage: () => trigger(GROUP, "fillStorage"),
 };

@@ -1,13 +1,14 @@
 import React from "react";
 import { useString } from "../bindings";
 import { getPanelState, setPanelState, startDrag, usePanelState } from "../store";
-import { BuildTab, DEFAULT_PANEL_COLOR, DemandTab, EconomyTab, StyleTab } from "./tabs";
+import { BuildTab, DEFAULT_PANEL_COLOR, DemandTab, EconomyTab, PeopleTab, SettingsTab } from "./tabs";
 
 const TABS = [
     { id: "economy", label: "Economy", content: EconomyTab },
     { id: "build", label: "Build", content: BuildTab },
+    { id: "people", label: "People", content: PeopleTab },
     { id: "demand", label: "Demand", content: DemandTab },
-    { id: "style", label: "Style", content: StyleTab },
+    { id: "settings", label: "Settings", content: SettingsTab },
 ];
 
 const MIN_WIDTH = 380;

@@ -11,10 +11,13 @@ CityForge Reborn is an in-game cheat / sandbox panel for Cities: Skylines II.
 - Development tree points
 - Instant construction or adjustable build speed
 - Per-zone demand overrides with Force Build
+- Population boosts, happiness, education and rich citizens
+- Building level-up, max efficiency and storage filling
+- Keep achievements enabled
 - Customisable panel colour
 	</LongDescription>
 	<Tag Value="Code Mod" />
-	<ModVersion Value="0.1.0" />
+	<ModVersion Value="0.2.0" />
 	<GameVersion Value="1.*" />
 	<ChangeLog Value="Initial release." />
 	<ExternalLink Type="github" Value="https://github.com/ZeeIce/CityForge-Reborn" />

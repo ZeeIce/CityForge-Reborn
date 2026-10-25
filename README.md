@@ -2,11 +2,12 @@
 
 An all-in-one cheat / sandbox panel for **Cities: Skylines II**, written from scratch.
 
-<img src="docs/economy.png" width="420" alt="Economy tab"> <img src="docs/demand.png" width="420" alt="Demand tab">
+<img src="docs/economy.png" width="400" alt="Economy tab"> <img src="docs/build.png" width="400" alt="Build tab">
+<img src="docs/people.png" width="400" alt="People tab"> <img src="docs/demand.png" width="400" alt="Demand tab">
 
 *(Browser preview with mocked game data.)*
 
-## Status — v0.1.0 (first build, untested in-game)
+## Status — v0.2.0 (untested in-game)
 
 | Feature | State |
 | --- | --- |
@@ -17,7 +18,12 @@ An all-in-one cheat / sandbox panel for **Cities: Skylines II**, written from sc
 | Instant construction, build speed ½× / 1× / 2× / 4× | ✅ |
 | Demand overrides per zone + Force Build | ✅ |
 | Panel colour presets + custom hex | ✅ |
-| Population & tourism, buildings, storage, achievements | ⏳ next |
+| Move-in & tourist boost (2–10×) | ✅ |
+| Max happiness, rich citizens, max education, education distribution | ✅ |
+| Level buildings up to a target level (1–5), max building efficiency | ✅ |
+| Fill storage / keep storage full | ✅ |
+| Keep achievements enabled (Options menu) | ✅ |
+| Reset cheats on load | ✅ |
 | Translations | ⏳ later |
 
 See [FEATURES.md](FEATURES.md) for the full planned feature list.
@@ -60,17 +66,26 @@ src/CityForgeReborn/
     MilestoneCheatSystem.cs   milestones + development points
     ConstructionCheatSystem.cs
     DemandOverrideSystem.cs
+    CitizenCheatSystem.cs     happiness, education, rich households
+    PopulationBoostSystem.cs  move-in / tourist multiplier
+    BuildingCheatSystem.cs    level up, efficiency, storage
+    AchievementSystem.cs
   UI/                         React/TypeScript panel
 ```
 
 ## Notes for testing
 
-This first build hasn't been compiled against the game yet. If something doesn't
-compile, the most likely culprits are game field names that need checking with a
-decompiler (ILSpy/dnSpy on `Game.dll`):
+The C# has been syntax-checked against stand-in declarations, but not yet compiled
+against the real game. If something doesn't compile, the most likely culprits are
+game type/field names that need checking with a decompiler (ILSpy/dnSpy on `Game.dll`):
 
 - `MilestoneData.m_XpRequried`, `XP.m_XP`, `MilestoneLevel.m_AchievedMilestone`, `DevTreePoints.m_Points`
 - `UnderConstruction.m_Progress`
+- `Citizen.m_WellBeing`, `Citizen.m_Health`, `Citizen.SetEducationLevel`
+- `BuildingCondition.m_Condition`, `SpawnableBuildingData.m_Level`, `Efficiency.m_Efficiency`
+- `StorageCompanyData.m_StoredResources`, `StorageLimitData.m_Limit`
+- `PlatformManager.achievementsEnabled` (`Colossal.PSI.Common`)
+- Move-in/tourist boost looks up `HouseholdSpawnSystem` / `TouristSpawnSystem` by name and logs if they're missing.
 - Demand: `DemandOverrideSystem` finds the demand systems' fields by name at runtime and
   logs which ones it found — check the log if demand overrides don't seem to work.
 
