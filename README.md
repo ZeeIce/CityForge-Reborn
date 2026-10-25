@@ -58,10 +58,12 @@ Open an [issue](../../issues) and attach this log file:
 %USERPROFILE%\AppData\LocalLow\Colossal Order\Cities Skylines II\Logs\CityForgeReborn.Mod.log
 ```
 
-## Coming later
+## Roadmap
 
-- Translations
-- Time of day and weather control
+- [x] Unlimited water and electricity
+- [x] No pollution
+- [ ] Translations
+- [ ] Time of day and weather control
 
 ## Build it yourself
 
