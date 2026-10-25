@@ -13,6 +13,8 @@ This is a brand-new mod inspired by the original CityForge.
 It is not made by, or connected to, the original author, and it contains none of the original's code.
 Everything was rewritten from the ground up. Please send bugs and feedback here, not to the original mod.
 
+CityForge Reborn is fully open source under the GPL-3.0 license, and it will always stay that way.
+
 ## What it does
 
 **Economy**
