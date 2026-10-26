@@ -5,3 +5,6 @@ obj/
 node_modules/
 **/UI/build/
 Library/
+
+# Paradox Mods publishing config (kept private, local only)
+**/Properties/
