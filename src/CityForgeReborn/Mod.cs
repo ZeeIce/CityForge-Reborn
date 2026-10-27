@@ -12,16 +12,17 @@ namespace CityForgeReborn
     {
         public static ILog Log = LogManager.GetLogger($"{nameof(CityForgeReborn)}.{nameof(Mod)}").SetShowsErrorsInUI(false);
 
-        public static Setting Settings { get; private set; }
+        public static CityForgeSetting Settings { get; private set; }
 
         public void OnLoad(UpdateSystem updateSystem)
         {
             Log.Info(nameof(OnLoad));
 
-            Settings = new Setting(this);
+            Settings = new CityForgeSetting(this);
+            Settings.RegisterKeyBindings();
             Settings.RegisterInOptionsUI();
             GameManager.instance.localizationManager.AddSource("en-US", new LocaleEN(Settings));
-            AssetDatabase.global.LoadSettings(nameof(CityForgeReborn), Settings, new Setting(this));
+            AssetDatabase.global.LoadSettings(nameof(CityForgeReborn), Settings, new CityForgeSetting(this));
 
             updateSystem.UpdateAt<MoneyCheatSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<MilestoneCheatSystem>(SystemUpdatePhase.GameSimulation);
@@ -38,6 +39,7 @@ namespace CityForgeReborn
             updateSystem.UpdateAfter<ForceBuildSystem, DemandOverrideSystem>(SystemUpdatePhase.GameSimulation);
             updateSystem.UpdateAt<CityForgeUISystem>(SystemUpdatePhase.UIUpdate);
             updateSystem.UpdateAt<AchievementSystem>(SystemUpdatePhase.UIUpdate);
+            updateSystem.UpdateAt<SettingsSaver>(SystemUpdatePhase.UIUpdate);
         }
 
         public void OnDispose()

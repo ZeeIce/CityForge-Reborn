@@ -83,7 +83,7 @@ namespace CityForgeReborn.Systems
         }
 
         /// <summary>Cumulative percentages for education levels 0–3 (level 4 is the remainder).</summary>
-        private static int4 DistributionThresholds(Setting s)
+        private static int4 DistributionThresholds(CityForgeSetting s)
         {
             var weights = new float4(s.EducationUneducated, s.EducationPoor, s.EducationEducated, s.EducationWell);
             float total = math.csum(weights) + s.EducationHigh;

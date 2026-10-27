@@ -4,6 +4,8 @@ using System.Text.RegularExpressions;
 using Colossal.Serialization.Entities;
 using Colossal.UI.Binding;
 using Game;
+using Game.Input;
+using Game.SceneFlow;
 using Game.UI;
 using Unity.Mathematics;
 
@@ -29,6 +31,10 @@ namespace CityForgeReborn.Systems
         private CitizenCheatSystem m_Citizens;
         private BuildingCheatSystem m_Buildings;
 
+        private ProxyAction m_ToggleAction;
+        // Bumped on each hotkey press; the panel toggles whenever the value changes.
+        private int m_TogglePresses;
+
         protected override void OnCreate()
         {
             base.OnCreate();
@@ -41,6 +47,7 @@ namespace CityForgeReborn.Systems
             var s = Mod.Settings;
 
             RegisterBool("showToolbarButton", () => s.ShowToolbarButton, v => s.ShowToolbarButton = v);
+            RegisterBool("showStatusBar", () => s.ShowStatusBar, v => s.ShowStatusBar = v);
             RegisterString("panelColor", () => s.PanelColor, v =>
             {
                 if (kHexColor.IsMatch(v))
@@ -100,6 +107,11 @@ namespace CityForgeReborn.Systems
             // Read-only game state.
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "currentMilestone", () => m_Milestones.CurrentMilestone));
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "maxMilestone", () => m_Milestones.MaxMilestone));
+            AddUpdateBinding(new GetterValueBinding<string>(kGroup, "activeCheats", () => string.Join("|", s.ActiveCheats())));
+            AddUpdateBinding(new GetterValueBinding<int>(kGroup, "togglePanel", () => m_TogglePresses));
+
+            m_ToggleAction = s.GetAction(CityForgeSetting.kTogglePanelAction);
+            m_ToggleAction.shouldBeEnabled = true;
 
             // Generic setters.
             AddBinding(new TriggerBinding<string, bool>(kGroup, "setBool", (key, value) => Set(m_BoolSetters, key, value)));
@@ -126,6 +138,14 @@ namespace CityForgeReborn.Systems
                 s.DisableAllCheats();
                 s.ApplyAndSave();
             }
+        }
+
+        protected override void OnUpdate()
+        {
+            if (m_ToggleAction.WasPerformedThisFrame() && GameManager.instance.gameMode.IsGame())
+                m_TogglePresses++;
+
+            base.OnUpdate();
         }
 
         private static int Percent(int value) => math.clamp(value, 0, 100);

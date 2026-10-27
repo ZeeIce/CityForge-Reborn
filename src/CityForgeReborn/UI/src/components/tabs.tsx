@@ -260,6 +260,7 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 export const SettingsTab = () => {
     const [color, setColor] = useString("panelColor", DEFAULT_PANEL_COLOR);
     const [resetOnLoad, setResetOnLoad] = useBool("resetCheatsOnLoad");
+    const [statusBar, setStatusBar] = useBool("showStatusBar");
     const [draft, setDraft] = useState<string | null>(null);
     const text = draft ?? color;
 
@@ -272,6 +273,13 @@ export const SettingsTab = () => {
                     value={resetOnLoad}
                     onChange={setResetOnLoad}
                 />
+                <Toggle
+                    label="Show active cheats"
+                    hint="A strip next to the CityForge button listing the cheats that are on"
+                    value={statusBar}
+                    onChange={setStatusBar}
+                />
+                <div className="cf-row__hint cf-spaced">Open or close this panel with Ctrl+Shift+C. Change the key in Options › CityForge Reborn.</div>
             </Card>
             <Card title="Appearance" icon="◐">
                 <div className="cf-row__hint cf-spaced">Panel colour</div>

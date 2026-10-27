@@ -28,6 +28,48 @@
     border-color: #ff9a3c;
 }
 
+/* ---------- Status bar (active cheats) ---------- */
+
+.cf-status {
+    height: 40rem;
+    max-width: 520rem;
+    margin-left: 6rem;
+    padding: 0 12rem 0 6rem;
+    border-radius: 8rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(22, 27, 34, 0.85);
+    border: 2rem solid rgba(255, 177, 92, 0.2);
+    color: #e6e9ef;
+    font-size: 13rem;
+    pointer-events: auto;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.cf-status:hover {
+    border-color: rgba(255, 177, 92, 0.6);
+}
+
+.cf-status__count {
+    flex-shrink: 0;
+    padding: 3rem 8rem;
+    margin-right: 10rem;
+    border-radius: 5rem;
+    background-color: rgba(255, 140, 50, 0.25);
+    color: #ffb15c;
+    font-weight: bold;
+    font-size: 12rem;
+    text-transform: uppercase;
+    letter-spacing: 1rem;
+}
+
+.cf-status__list {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 /* ---------- Panel shell ---------- */
 
 .cf-panel {

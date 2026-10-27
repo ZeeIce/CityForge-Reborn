@@ -33,6 +33,10 @@ export function useReadOnlyInt(key: string, fallback = 0): number {
     return useValue(binding(key, fallback));
 }
 
+export function useReadOnlyString(key: string, fallback = ""): string {
+    return useValue(binding(key, fallback));
+}
+
 export const actions = {
     addMoney: (amount: number) => trigger(GROUP, "addMoney", amount),
     advanceMilestone: () => trigger(GROUP, "advanceMilestone"),

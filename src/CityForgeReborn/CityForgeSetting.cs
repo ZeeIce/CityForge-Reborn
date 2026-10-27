@@ -1,8 +1,12 @@
 using System.Collections.Generic;
 using Colossal;
 using Colossal.IO.AssetDatabase;
+using Game;
+using Game.Input;
 using Game.Modding;
+using Game.SceneFlow;
 using Game.Settings;
+using CityForgeReborn.Systems;
 
 namespace CityForgeReborn
 {
@@ -10,17 +14,25 @@ namespace CityForgeReborn
     /// Mod options shown in the game's Options menu, plus the hidden cheat state
     /// driven by the in-game panel. Everything here is saved automatically.
     /// </summary>
+    /// <remarks>
+    /// The class name must stay unique among all mods: the game finds the file to save by
+    /// the settings type's name, and many mods call theirs "Setting".
+    /// </remarks>
     [FileLocation(nameof(CityForgeReborn))]
-    [SettingsUIGroupOrder(kGeneralGroup)]
-    [SettingsUIShowGroupName(kGeneralGroup)]
-    public class Setting : ModSetting
+    [SettingsUIGroupOrder(kGeneralGroup, kHotkeyGroup)]
+    [SettingsUIShowGroupName(kGeneralGroup, kHotkeyGroup)]
+    [SettingsUIKeyboardAction(kTogglePanelAction, ActionType.Button, usages: new[] { Usages.kDefaultUsage, Usages.kToolUsage, Usages.kCancelableToolUsage, Usages.kDiscardableToolUsage })]
+    public class CityForgeSetting : ModSetting
     {
         public const string kSection = "Main";
         public const string kGeneralGroup = "General";
+        public const string kHotkeyGroup = "Hotkeys";
+
+        public const string kTogglePanelAction = "TogglePanel";
 
         public const string kDefaultPanelColor = "#161b22";
 
-        public Setting(IMod mod) : base(mod)
+        public CityForgeSetting(IMod mod) : base(mod)
         {
             SetDefaults();
         }
@@ -29,7 +41,32 @@ namespace CityForgeReborn
         public bool ShowToolbarButton { get; set; }
 
         [SettingsUISection(kSection, kGeneralGroup)]
+        public bool ShowStatusBar { get; set; }
+
+        /// <summary>The game decides whether achievements count when a city loads, so this can only change in the main menu.</summary>
+        [SettingsUISection(kSection, kGeneralGroup)]
+        [SettingsUIDisableByCondition(typeof(CityForgeSetting), nameof(IsCityLoaded))]
         public bool KeepAchievementsEnabled { get; set; }
+
+        [SettingsUISection(kSection, kHotkeyGroup)]
+        [SettingsUIKeyboardBinding(BindingKeyboard.C, kTogglePanelAction, ctrl: true, shift: true)]
+        public ProxyBinding TogglePanelBinding { get; set; }
+
+        [SettingsUISection(kSection, kHotkeyGroup)]
+        [SettingsUIButton]
+        public bool ResetHotkeys
+        {
+            set => ResetKeyBindings();
+        }
+
+        public bool IsCityLoaded() => GameManager.instance != null && GameManager.instance.gameMode.IsGame();
+
+        /// <summary>Applies at once; the file write goes through <see cref="SettingsSaver"/>, which retries.</summary>
+        public override void ApplyAndSave()
+        {
+            Apply();
+            SettingsSaver.Request();
+        }
 
         // ---- Panel state (hidden from the Options menu) ----
 
@@ -125,9 +162,54 @@ namespace CityForgeReborn
             OfficeOverride = OfficeForce = false;
         }
 
+        /// <summary>Short labels for every ongoing cheat that is on, for the status bar.</summary>
+        public List<string> ActiveCheats()
+        {
+            var on = new List<string>();
+            void Add(bool active, string label)
+            {
+                if (active) on.Add(label);
+            }
+
+            Add(InfiniteMoney, "Infinite money");
+            Add(KeepMilestonesUnlocked, "Milestones unlocked");
+            Add(InstantConstruction, "Instant build");
+            Add(!InstantConstruction && BuildSpeed != 1, $"Build speed {SpeedLabel(BuildSpeed)}");
+            Add(BoostMoveIn, $"Move-ins {MoveInMultiplier}×");
+            Add(BoostTourists, $"Tourists {TouristMultiplier}×");
+            Add(MaxHappiness, "Max happiness");
+            Add(RichCitizens, "Rich citizens");
+            Add(MaxEducation, "Max education");
+            Add(LevelUpBuildings, $"Level {BuildingLevelTarget} buildings");
+            Add(KeepStorageFull, "Storage full");
+            Add(MaxEfficiency, "Max efficiency");
+            Add(UnlimitedWater, "Unlimited water");
+            Add(UnlimitedElectricity, "Unlimited electricity");
+            Add(NoPollution, "No pollution");
+            AddDemand(on, "Residential", ResidentialOverride, ResidentialForce);
+            AddDemand(on, "Commercial", CommercialOverride, CommercialForce);
+            AddDemand(on, "Industrial", IndustrialOverride, IndustrialForce);
+            AddDemand(on, "Office", OfficeOverride, OfficeForce);
+            return on;
+        }
+
+        private static void AddDemand(List<string> on, string zone, bool overridden, bool force)
+        {
+            if (overridden) on.Add($"{zone} demand");
+            if (force) on.Add($"{zone} Force Build");
+        }
+
+        private static string SpeedLabel(int index)
+        {
+            var speeds = ConstructionCheatSystem.SpeedMultipliers;
+            float v = speeds[System.Math.Max(0, System.Math.Min(index, speeds.Length - 1))];
+            return v == 0.5f ? "½×" : $"{v:0}×";
+        }
+
         public override void SetDefaults()
         {
             ShowToolbarButton = true;
+            ShowStatusBar = true;
             KeepAchievementsEnabled = false;
             PanelColor = kDefaultPanelColor;
             ResetCheatsOnLoad = false;
@@ -185,9 +267,9 @@ namespace CityForgeReborn
 
     public class LocaleEN : IDictionarySource
     {
-        private readonly Setting m_Setting;
+        private readonly CityForgeSetting m_Setting;
 
-        public LocaleEN(Setting setting)
+        public LocaleEN(CityForgeSetting setting)
         {
             m_Setting = setting;
         }
@@ -197,14 +279,27 @@ namespace CityForgeReborn
             return new Dictionary<string, string>
             {
                 { m_Setting.GetSettingsLocaleID(), "CityForge Reborn" },
-                { m_Setting.GetOptionTabLocaleID(Setting.kSection), "Main" },
-                { m_Setting.GetOptionGroupLocaleID(Setting.kGeneralGroup), "General" },
+                { m_Setting.GetOptionTabLocaleID(CityForgeSetting.kSection), "Main" },
+                { m_Setting.GetOptionGroupLocaleID(CityForgeSetting.kGeneralGroup), "General" },
 
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.ShowToolbarButton)), "Show toolbar button" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.ShowToolbarButton)), "Show the CityForge button in the top-left corner while in a city." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.ShowToolbarButton)), "Show toolbar button" },
+                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.ShowToolbarButton)), "Show the CityForge button in the top-left corner while in a city." },
 
-                { m_Setting.GetOptionLabelLocaleID(nameof(Setting.KeepAchievementsEnabled)), "Keep achievements enabled" },
-                { m_Setting.GetOptionDescLocaleID(nameof(Setting.KeepAchievementsEnabled)), "Allow Steam/Paradox achievements to unlock while mods are active." },
+                { m_Setting.GetOptionGroupLocaleID(CityForgeSetting.kHotkeyGroup), "Hotkeys" },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.ShowStatusBar)), "Show active cheats" },
+                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.ShowStatusBar)), "Show a strip next to the CityForge button listing the cheats that are on. Click it to open the panel." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.KeepAchievementsEnabled)), "Keep achievements enabled" },
+                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.KeepAchievementsEnabled)), "Allow Steam/Paradox achievements to unlock while mods are active. Can only be changed from the main menu, before a city is loaded." },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.TogglePanelBinding)), "Open or close the panel" },
+                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.TogglePanelBinding)), "Keyboard shortcut for the CityForge panel while in a city." },
+                { m_Setting.GetBindingKeyLocaleID(CityForgeSetting.kTogglePanelAction), "Open or close the panel" },
+                { m_Setting.GetBindingMapLocaleID(), "CityForge Reborn" },
+
+                { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.ResetHotkeys)), "Reset hotkeys" },
+                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.ResetHotkeys)), "Put the CityForge shortcuts back to their defaults." },
             };
         }
 

@@ -41,9 +41,11 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 
 **Extras**
 
+*   Hotkey to open the panel (Ctrl+Shift+C, change it in Options)
+*   Status bar showing which cheats are on
 *   Panel colors
 *   Reset cheats on load
-*   Keep achievements on
+*   Keep achievements on (set it in the main menu)
 
 **Roadmap** (No particular order)
 
@@ -55,17 +57,13 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 *   Free building upkeep
 *   Traffic tools: remove stuck vehicles, no accidents
 *   Disasters on/off
-*   Hotkey to open the panel
 *   Save and load cheat presets
-*   Status bar showing active cheats
-*   Lock the achievements option while a city is loaded
 *   Smoother instant construction on big builds
-*   Retry saving settings if another mod is saving
 	</LongDescription>
 	<Thumbnail Value="Properties/Thumbnail.png" />
 	<Tag Value="Code Mod" />
-	<ModVersion Value="1.1.0" />
+	<ModVersion Value="1.2.0" />
 	<GameVersion Value="1.*" />
-	<ChangeLog Value="New: unlimited water, unlimited electricity and no pollution (Build tab)." />
+	<ChangeLog Value="Control update. New: Ctrl+Shift+C opens the panel (change it in Options). New: a strip next to the button shows which cheats are on. Keep achievements can now only be changed from the main menu. Fixed: settings could fail to save when other mods saved at the same time." />
 	<ExternalLink Type="github" Url="https://github.com/ZeeIce/CityForge-Reborn" />
 </Publish>
