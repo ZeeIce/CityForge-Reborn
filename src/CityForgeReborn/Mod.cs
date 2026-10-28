@@ -40,6 +40,8 @@ namespace CityForgeReborn
             updateSystem.UpdateAt<CityForgeUISystem>(SystemUpdatePhase.UIUpdate);
             updateSystem.UpdateAt<AchievementSystem>(SystemUpdatePhase.UIUpdate);
             updateSystem.UpdateAt<SettingsSaver>(SystemUpdatePhase.UIUpdate);
+            // On request only; the UI phase also runs while the game is paused.
+            updateSystem.UpdateAt<ExodusSystem>(SystemUpdatePhase.UIUpdate);
         }
 
         public void OnDispose()

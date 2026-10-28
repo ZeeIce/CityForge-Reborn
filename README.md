@@ -33,6 +33,7 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 - Boost move-ins and tourists (up to 10×)
 - Max happiness, rich citizens, max education
 - Set your own education mix
+- **Unemployed exodus**: send away jobless households, filtered by education level, instantly or the normal way
 
 **Demand**
 - Set demand for each zone yourself

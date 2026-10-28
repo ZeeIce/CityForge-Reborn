@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- New: Unemployed exodus (People tab). Send away households where nobody works or studies, filtered by the adults' education level. Remove them instantly, or have them move away the normal way. Requested on the Paradox forum by nilesism
+
 ## 1.2.0
 
 The Control update.

@@ -30,6 +30,7 @@ namespace CityForgeReborn.Systems
         private MilestoneCheatSystem m_Milestones;
         private CitizenCheatSystem m_Citizens;
         private BuildingCheatSystem m_Buildings;
+        private ExodusSystem m_Exodus;
 
         private static readonly Regex kPinList = new Regex("^[A-Za-z,]{0,1000}$");
 
@@ -47,6 +48,7 @@ namespace CityForgeReborn.Systems
             m_Milestones = World.GetOrCreateSystemManaged<MilestoneCheatSystem>();
             m_Citizens = World.GetOrCreateSystemManaged<CitizenCheatSystem>();
             m_Buildings = World.GetOrCreateSystemManaged<BuildingCheatSystem>();
+            m_Exodus = World.GetOrCreateSystemManaged<ExodusSystem>();
 
             var s = Mod.Settings;
 
@@ -85,6 +87,16 @@ namespace CityForgeReborn.Systems
             RegisterInt("educationEducated", () => s.EducationEducated, v => s.EducationEducated = Percent(v));
             RegisterInt("educationWell", () => s.EducationWell, v => s.EducationWell = Percent(v));
             RegisterInt("educationHigh", () => s.EducationHigh, v => s.EducationHigh = Percent(v));
+
+            RegisterInt("exodusEducation", () => s.ExodusEducation, v =>
+            {
+                s.ExodusEducation = v & ExodusSystem.kAllLevels;
+                m_Exodus.RequestCount();
+            });
+            RegisterBool("exodusMoveAway", () => s.ExodusMoveAway, v => s.ExodusMoveAway = v);
+            AddUpdateBinding(new GetterValueBinding<int>(kGroup, "exodusHouseholds", () => m_Exodus.MatchingHouseholds));
+            AddUpdateBinding(new GetterValueBinding<int>(kGroup, "exodusCitizens", () => m_Exodus.MatchingCitizens));
+            AddUpdateBinding(new GetterValueBinding<string>(kGroup, "exodusResult", () => m_Exodus.LastResult));
 
             RegisterBool("levelUpBuildings", () => s.LevelUpBuildings, v => s.LevelUpBuildings = v);
             RegisterInt("buildingLevelTarget", () => s.BuildingLevelTarget, v => s.BuildingLevelTarget = math.clamp(v, 1, 5));
@@ -145,6 +157,8 @@ namespace CityForgeReborn.Systems
             AddBinding(new TriggerBinding<int>(kGroup, "addDevTreePoints", points => m_Milestones.AddDevTreePoints(math.max(0, points))));
             AddBinding(new TriggerBinding(kGroup, "applyEducationDistribution", () => m_Citizens.ApplyEducationDistribution()));
             AddBinding(new TriggerBinding(kGroup, "fillStorage", () => m_Buildings.FillStorage()));
+            AddBinding(new TriggerBinding(kGroup, "refreshExodus", () => m_Exodus.RequestCount()));
+            AddBinding(new TriggerBinding(kGroup, "runExodus", () => m_Exodus.RequestRun()));
         }
 
         protected override void OnGameLoadingComplete(Purpose purpose, GameMode mode)

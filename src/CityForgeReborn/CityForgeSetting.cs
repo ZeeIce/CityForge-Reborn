@@ -100,6 +100,10 @@ namespace CityForgeReborn
         [SettingsUIHidden] public bool RichCitizens { get; set; }
         [SettingsUIHidden] public bool MaxEducation { get; set; }
 
+        // Unemployed exodus: education levels as bits (1 = uneducated ... 16 = highly educated).
+        [SettingsUIHidden] public int ExodusEducation { get; set; }
+        [SettingsUIHidden] public bool ExodusMoveAway { get; set; }
+
         // Education distribution, % of citizens per level (normalised when applied).
         [SettingsUIHidden] public int EducationUneducated { get; set; }
         [SettingsUIHidden] public int EducationPoor { get; set; }
@@ -188,6 +192,9 @@ namespace CityForgeReborn
             MaxHappiness = false;
             RichCitizens = false;
             MaxEducation = false;
+
+            ExodusEducation = 1;
+            ExodusMoveAway = false;
 
             EducationUneducated = 10;
             EducationPoor = 20;

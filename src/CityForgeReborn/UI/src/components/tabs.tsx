@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { actions, useBool, useInt, useReadOnlyInt, useReadOnlyString, useString } from "../bindings";
 import { CATEGORIES, Category, CHEATS, parsePins, pinIcon } from "../cheats";
 import { Button, ButtonRow, Card, Notice, Segmented, Slider, Toggle } from "./controls";
@@ -186,6 +186,10 @@ export const PeopleTab = () => {
                 <Toggle label="Max education" hint="Every citizen is highly educated" value={maxEducation} onChange={setMaxEducation} />
             </Card>
 
+            <Card title="Unemployed exodus" icon="⇡" defaultOpen={false}>
+                <Exodus />
+            </Card>
+
             <Card title="Education distribution" icon="✎" defaultOpen={false}>
                 {maxEducation && <Notice tone="warning" text="Turn off Max education to use a custom distribution." />}
                 <div className={maxEducation ? "cf-dimmed" : ""}>
@@ -203,6 +207,73 @@ export const PeopleTab = () => {
                     </ButtonRow>
                 </div>
             </Card>
+        </>
+    );
+};
+
+const EXODUS_MODES = ["Remove instantly", "Move away"];
+
+/**
+ * Sends away households where nobody works or studies. Mounted only while its card is
+ * open, so the city is only scanned when someone is looking.
+ */
+const Exodus = () => {
+    const [mask, setMask] = useInt("exodusEducation", 1);
+    const [moveAway, setMoveAway] = useBool("exodusMoveAway");
+    const households = useReadOnlyInt("exodusHouseholds", -1);
+    const residents = useReadOnlyInt("exodusCitizens");
+    const result = useReadOnlyString("exodusResult");
+    const [armed, setArmed] = useState(false);
+
+    useEffect(() => actions.refreshExodus(), []);
+    useEffect(() => {
+        if (!armed) return;
+        const timer = setTimeout(() => setArmed(false), 4000);
+        return () => clearTimeout(timer);
+    }, [armed]);
+
+    const toggleLevel = (i: number) => {
+        setArmed(false);
+        setMask(mask ^ (1 << i));
+    };
+    const verb = moveAway ? "Send away" : "Remove";
+
+    return (
+        <>
+            <div className="cf-row__hint">
+                Households where nobody has a job or a school place, and every adult has one of the education levels below.
+                Whole households leave together; children go with their parents, and retirees are never touched.
+            </div>
+            <div className="cf-chips cf-spaced">
+                {EDUCATION_LEVELS.map((level, i) => (
+                    <div key={level.key} className={`cf-chip${mask & (1 << i) ? " cf-chip--on" : ""}`} onClick={() => toggleLevel(i)}>
+                        {level.label}
+                    </div>
+                ))}
+            </div>
+            <Segmented options={EXODUS_MODES} value={moveAway ? 1 : 0} onChange={(i) => { setArmed(false); setMoveAway(i === 1); }} />
+            <div className="cf-row__hint cf-spaced">
+                {moveAway
+                    ? "They pack up and leave the normal way, by car, bus, train or plane. Expect extra traffic for a while."
+                    : "They vanish on the spot: homes, school seats, cars and pets are freed at once."}
+            </div>
+            <div className="cf-exodus__count">
+                {households < 0 ? "Counting…" : mask === 0 ? "Pick at least one education level." : `${households.toLocaleString()} households · ${residents.toLocaleString()} residents match`}
+            </div>
+            <ButtonRow>
+                <Button
+                    label={armed ? `Click again to ${verb.toLowerCase()} ${households.toLocaleString()} households` : `${verb} matching households`}
+                    variant={armed ? "negative" : "accent"}
+                    disabled={households <= 0 || mask === 0}
+                    onClick={() => {
+                        if (!armed) return setArmed(true);
+                        setArmed(false);
+                        actions.runExodus();
+                    }}
+                />
+                <Button label="Recount" onClick={actions.refreshExodus} />
+            </ButtonRow>
+            {result && <Notice text={result} />}
         </>
     );
 };
