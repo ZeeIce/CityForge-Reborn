@@ -11,7 +11,7 @@ A cheat and sandbox panel, rebuilt from scratch. Click the ◆ button in the top
 
 This is a brand-new mod inspired by the original CityForge. It is not made by, or connected to, the original author, and it contains none of the original's code. Everything was rewritten from the ground up.
 
-Github link is included. Please send bugs, feedback, and open any issues you may encounter there. Pull requests are always welcome. Thank you!
+Github link &amp; forum link are both attached to the right. Please send bugs, feedback, and open any issues you may encounter to either. Pull requests are always welcome. Thank you!
 
 CityForge Reborn is fully open source under the GPL-3.0 license, and it will always stay that way.
 
@@ -66,5 +66,6 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 	<ModVersion Value="1.2.0" />
 	<GameVersion Value="1.*" />
 	<ChangeLog Value="Control update. New: a hotkey opens the panel (Ctrl+Shift+C, or set your own in the Settings tab). New: buff bar under the button shows every cheat that is on; click an icon to switch it, and pin favourites for one-click toggling. Keep achievements can now only be changed from the main menu. Fixed: settings could fail to save when other mods saved at the same time." />
+	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/cityforge-reborn-all-in-one-cheat-sandbox-panel-discussion-feedback.1947097/" />
 	<ExternalLink Type="github" Url="https://github.com/ZeeIce/CityForge-Reborn" />
 </Publish>
