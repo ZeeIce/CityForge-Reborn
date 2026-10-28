@@ -97,6 +97,7 @@ namespace CityForgeReborn.Systems
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "exodusHouseholds", () => m_Exodus.MatchingHouseholds));
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "exodusCitizens", () => m_Exodus.MatchingCitizens));
             AddUpdateBinding(new GetterValueBinding<string>(kGroup, "exodusResult", () => m_Exodus.LastResult));
+            AddUpdateBinding(new GetterValueBinding<string>(kGroup, "exodusReport", () => m_Exodus.Report));
 
             RegisterBool("levelUpBuildings", () => s.LevelUpBuildings, v => s.LevelUpBuildings = v);
             RegisterInt("buildingLevelTarget", () => s.BuildingLevelTarget, v => s.BuildingLevelTarget = math.clamp(v, 1, 5));
@@ -159,6 +160,7 @@ namespace CityForgeReborn.Systems
             AddBinding(new TriggerBinding(kGroup, "fillStorage", () => m_Buildings.FillStorage()));
             AddBinding(new TriggerBinding(kGroup, "refreshExodus", () => m_Exodus.RequestCount()));
             AddBinding(new TriggerBinding(kGroup, "runExodus", () => m_Exodus.RequestRun()));
+            AddBinding(new TriggerBinding<int, int>(kGroup, "focusExodus", (index, version) => m_Exodus.Focus(index, version)));
         }
 
         protected override void OnGameLoadingComplete(Purpose purpose, GameMode mode)

@@ -405,6 +405,95 @@
     font-weight: bold;
 }
 
+.cf-ex-table {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10rem;
+}
+
+.cf-ex-table__row {
+    display: flex;
+    flex-direction: row;
+    padding: 4rem 6rem;
+    border-radius: 4rem;
+    font-size: 12.5rem;
+    color: #8b94a3;
+}
+
+.cf-ex-table__row span {
+    width: 21%;
+    text-align: right;
+}
+
+.cf-ex-table__row .cf-ex-table__level {
+    width: 37%;
+    text-align: left;
+}
+
+.cf-ex-table__row--on {
+    color: #e6e9ef;
+    background-color: rgba(255, 140, 50, 0.1);
+}
+
+.cf-ex-table__head {
+    font-size: 10.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8rem;
+}
+
+.cf-ex-list {
+    margin-top: 10rem;
+}
+
+.cf-ex-house {
+    padding: 7rem 8rem;
+    margin-bottom: 6rem;
+    border-radius: 6rem;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.cf-ex-house__head {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.cf-ex-house__home {
+    flex: 1;
+    font-weight: bold;
+    font-size: 13rem;
+}
+
+.cf-ex-house__go {
+    padding: 3rem 10rem;
+    border-radius: 5rem;
+    border: 1rem solid rgba(255, 177, 92, 0.45);
+    color: #ffb15c;
+    font-size: 12rem;
+    cursor: pointer;
+}
+
+.cf-ex-house__go:hover {
+    background-color: rgba(255, 140, 50, 0.18);
+}
+
+.cf-ex-member {
+    display: flex;
+    flex-direction: row;
+    font-size: 12.5rem;
+    padding: 1rem 0;
+}
+
+.cf-ex-member__name {
+    width: 42%;
+}
+
+.cf-ex-member__info {
+    flex: 1;
+    color: #8b94a3;
+}
+
 .cf-dimmed {
     opacity: 0.4;
 }

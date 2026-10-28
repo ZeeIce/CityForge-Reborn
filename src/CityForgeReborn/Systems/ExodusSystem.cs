@@ -1,41 +1,62 @@
+using System.Collections.Generic;
+using System.Text;
 using Game;
 using Game.Agents;
+using Game.Buildings;
 using Game.Citizens;
 using Game.Common;
 using Game.SceneFlow;
 using Game.Tools;
+using Game.UI;
+using Game.UI.InGame;
 using Unity.Collections;
 using Unity.Entities;
 
 namespace CityForgeReborn.Systems
 {
     /// <summary>
-    /// Unemployed exodus: sends away households where nobody works or studies and
-    /// every adult has one of the chosen education levels. Whole households go, so no
+    /// Unemployed exodus: sends away households where no one has a job, no adult is in
+    /// college or university, and every adult has one of the chosen education levels.
+    /// Children and teens at school don't keep a family here. Whole households go, so no
     /// children are left behind; retirees-only households are never touched.
     /// "Remove instantly" marks the household Deleted, and the game's own
     /// HouseholdAndCitizenRemoveSystem then removes the residents and frees their home,
     /// school seats, cars and pets. "Move away" adds MovingAway, the same flag the game
     /// sets for unhappy households, so they leave by the normal route.
+    /// Each scan also builds a report for the panel: a breakdown per education level and
+    /// a sample of the matching households, so players can see who is going.
     /// Runs on request only, in the UI phase so it also works while the game is paused.
     /// </summary>
     public partial class ExodusSystem : GameSystemBase
     {
         /// <summary>Bit per education level, 0 (uneducated) to 4 (highly educated).</summary>
         public const int kAllLevels = 0b11111;
+        private const int kLevels = 5;
+        /// <summary>Households listed by name in the panel; the counts always cover all of them.</summary>
+        private const int kListed = 40;
+
+        private static readonly string[] kEducation = { "Uneducated", "Poorly educated", "Educated", "Well educated", "Highly educated" };
 
         private EntityQuery m_HouseholdQuery;
+        private NameSystem m_Names;
+        private SelectedInfoUISystem m_SelectedInfo;
         private bool m_CountRequested;
         private bool m_RunRequested;
+        // Households sent away by the last "Move away" run, so they can be followed.
+        private readonly List<Entity> m_Sent = new List<Entity>();
 
         /// <summary>Households matching the current filter, or -1 before the first count.</summary>
         public int MatchingHouseholds { get; private set; } = -1;
         public int MatchingCitizens { get; private set; }
         public string LastResult { get; private set; } = "";
+        /// <summary>JSON for the panel: per-level breakdown, the matching sample and the sent list.</summary>
+        public string Report { get; private set; } = "{}";
 
         protected override void OnCreate()
         {
             base.OnCreate();
+            m_Names = World.GetOrCreateSystemManaged<NameSystem>();
+            m_SelectedInfo = World.GetOrCreateSystemManaged<SelectedInfoUISystem>();
             m_HouseholdQuery = GetEntityQuery(
                 ComponentType.ReadOnly<Household>(),
                 ComponentType.ReadOnly<HouseholdCitizen>(),
@@ -50,6 +71,31 @@ namespace CityForgeReborn.Systems
 
         public void RequestRun() => m_RunRequested = true;
 
+        /// <summary>Selects a household's first adult and points the camera at them.</summary>
+        public void Focus(int index, int version)
+        {
+            var household = new Entity { Index = index, Version = version };
+            if (!EntityManager.Exists(household) || !EntityManager.HasBuffer<HouseholdCitizen>(household))
+                return;
+
+            var members = EntityManager.GetBuffer<HouseholdCitizen>(household, true);
+            Entity target = Entity.Null;
+            for (int i = 0; i < members.Length && target == Entity.Null; i++)
+            {
+                var c = members[i].m_Citizen;
+                if (EntityManager.HasComponent<Citizen>(c) && EntityManager.GetComponentData<Citizen>(c).GetAge() == CitizenAge.Adult)
+                    target = c;
+            }
+
+            if (target == Entity.Null && members.Length > 0)
+                target = members[0].m_Citizen;
+            if (target == Entity.Null)
+                return;
+
+            m_SelectedInfo.SetSelection(target);
+            m_SelectedInfo.Focus(target);
+        }
+
         protected override void OnUpdate()
         {
             if (!m_CountRequested && !m_RunRequested)
@@ -61,27 +107,35 @@ namespace CityForgeReborn.Systems
             if (!GameManager.instance.gameMode.IsGame())
             {
                 MatchingHouseholds = -1;
+                m_Sent.Clear();
                 return;
             }
 
             var s = Mod.Settings;
+            int mask = s.ExodusEducation & kAllLevels;
             var matches = new NativeList<Entity>(Allocator.Temp);
-            int citizens = Find(s.ExodusEducation & kAllLevels, matches);
+            var scan = Scan(mask, matches);
 
             if (!run)
             {
                 MatchingHouseholds = matches.Length;
-                MatchingCitizens = citizens;
+                MatchingCitizens = scan.Residents;
+                Report = BuildReport(scan, matches);
                 matches.Dispose();
                 return;
             }
 
+            m_Sent.Clear();
             if (matches.Length > 0)
             {
                 if (s.ExodusMoveAway)
                 {
                     foreach (var household in matches)
+                    {
                         EntityManager.AddComponentData(household, new MovingAway { m_Reason = MoveAwayReason.NotHappy });
+                        if (m_Sent.Count < kListed)
+                            m_Sent.Add(household);
+                    }
                 }
                 else
                 {
@@ -90,8 +144,8 @@ namespace CityForgeReborn.Systems
             }
 
             string verb = s.ExodusMoveAway ? "sent away" : "removed";
-            LastResult = $"{matches.Length:N0} households ({citizens:N0} residents) {verb}.";
-            Mod.Log.Info($"Unemployed exodus: {LastResult} Education mask {s.ExodusEducation}.");
+            LastResult = $"{matches.Length:N0} households ({scan.Residents:N0} residents) {verb}: {DescribeAdults(scan.MatchedAdults)}.";
+            Mod.Log.Info($"Unemployed exodus: {LastResult} Education mask {mask}.");
             matches.Dispose();
 
             // They are gone (or leaving, which the query excludes), so recount next frame.
@@ -100,10 +154,19 @@ namespace CityForgeReborn.Systems
             m_CountRequested = true;
         }
 
-        /// <summary>Collects matching households and returns how many residents they hold.</summary>
-        private int Find(int educationMask, NativeList<Entity> matches)
+        private sealed class ScanResult
         {
-            int citizens = 0;
+            public readonly int[] Adults = new int[kLevels];
+            public readonly int[] Jobless = new int[kLevels];
+            public readonly int[] MatchedAdults = new int[kLevels];
+            public int Residents;
+        }
+
+        /// <summary>Collects matching households and counts adults per education level across the city.</summary>
+        private ScanResult Scan(int mask, NativeList<Entity> matches)
+        {
+            var result = new ScanResult();
+            var levels = new int[kLevels];
             using var households = m_HouseholdQuery.ToEntityArray(Allocator.Temp);
             foreach (var household in households)
             {
@@ -111,40 +174,174 @@ namespace CityForgeReborn.Systems
                     continue;
 
                 var members = EntityManager.GetBuffer<HouseholdCitizen>(household, true);
-                if (Qualifies(members, educationMask))
+                System.Array.Clear(levels, 0, kLevels);
+                int adults = 0;
+                bool qualifies = true;
+
+                for (int i = 0; i < members.Length; i++)
                 {
-                    matches.Add(household);
-                    citizens += members.Length;
+                    var member = members[i].m_Citizen;
+                    if (!EntityManager.HasComponent<Citizen>(member))
+                        continue;
+
+                    var citizen = EntityManager.GetComponentData<Citizen>(member);
+                    var age = citizen.GetAge();
+                    bool works = EntityManager.HasComponent<Worker>(member);
+                    bool studies = EntityManager.HasComponent<Game.Citizens.Student>(member);
+
+                    // A job anywhere in the family keeps it here, and so does an adult in
+                    // college or university. Kids at school don't.
+                    if (works || (studies && age == CitizenAge.Adult))
+                        qualifies = false;
+
+                    if (age != CitizenAge.Adult)
+                        continue;
+
+                    int level = citizen.GetEducationLevel();
+                    if (level < 0 || level >= kLevels)
+                        continue;
+
+                    result.Adults[level]++;
+                    if (!works && !studies)
+                        result.Jobless[level]++;
+                    if ((mask & (1 << level)) == 0)
+                        qualifies = false;
+                    levels[level]++;
+                    adults++;
                 }
+
+                if (!qualifies || adults == 0)
+                    continue;
+
+                matches.Add(household);
+                result.Residents += members.Length;
+                for (int l = 0; l < kLevels; l++)
+                    result.MatchedAdults[l] += levels[l];
             }
 
-            return citizens;
+            return result;
         }
 
-        private bool Qualifies(DynamicBuffer<HouseholdCitizen> members, int educationMask)
+        private static string DescribeAdults(int[] adults)
         {
-            int adults = 0;
+            var parts = new List<string>();
+            for (int l = 0; l < kLevels; l++)
+            {
+                if (adults[l] > 0)
+                    parts.Add($"{adults[l]:N0} {kEducation[l].ToLowerInvariant()}");
+            }
+
+            return parts.Count == 0 ? "no adults" : string.Join(", ", parts) + " adults";
+        }
+
+        // ---------------------------------------------------------------- report
+
+        private string BuildReport(ScanResult scan, NativeList<Entity> matches)
+        {
+            var sb = new StringBuilder(4096);
+            sb.Append("{\"levels\":[");
+            for (int l = 0; l < kLevels; l++)
+            {
+                if (l > 0) sb.Append(',');
+                sb.Append("{\"adults\":").Append(scan.Adults[l])
+                  .Append(",\"jobless\":").Append(scan.Jobless[l])
+                  .Append(",\"matched\":").Append(scan.MatchedAdults[l]).Append('}');
+            }
+
+            sb.Append("],\"list\":[");
+            for (int i = 0; i < matches.Length && i < kListed; i++)
+            {
+                if (i > 0) sb.Append(',');
+                AppendHousehold(sb, matches[i]);
+            }
+
+            sb.Append("],\"sent\":[");
+            bool first = true;
+            foreach (var household in m_Sent)
+            {
+                if (!EntityManager.Exists(household) || EntityManager.HasComponent<Deleted>(household))
+                    continue;
+                if (!first) sb.Append(',');
+                first = false;
+                AppendHousehold(sb, household);
+            }
+
+            sb.Append("]}");
+            return sb.ToString();
+        }
+
+        private void AppendHousehold(StringBuilder sb, Entity household)
+        {
+            sb.Append("{\"i\":").Append(household.Index).Append(",\"v\":").Append(household.Version);
+            sb.Append(",\"home\":");
+            AppendString(sb, HomeName(household));
+            sb.Append(",\"members\":[");
+
+            var members = EntityManager.GetBuffer<HouseholdCitizen>(household, true);
+            bool first = true;
             for (int i = 0; i < members.Length; i++)
             {
                 var member = members[i].m_Citizen;
                 if (!EntityManager.HasComponent<Citizen>(member))
                     continue;
 
-                // Anyone with a job or a school place keeps the household here.
-                if (EntityManager.HasComponent<Worker>(member) || EntityManager.HasComponent<Student>(member))
-                    return false;
-
                 var citizen = EntityManager.GetComponentData<Citizen>(member);
-                if (citizen.GetAge() != CitizenAge.Adult)
-                    continue;
+                var age = citizen.GetAge();
+                bool works = EntityManager.HasComponent<Worker>(member);
+                bool studies = EntityManager.HasComponent<Game.Citizens.Student>(member);
+                string status = works ? "Has a job"
+                    : studies ? (age == CitizenAge.Adult ? "In college" : "At school")
+                    : age == CitizenAge.Adult ? "No job"
+                    : age == CitizenAge.Elderly ? "Retired"
+                    : "";
 
-                if ((educationMask & (1 << citizen.GetEducationLevel())) == 0)
-                    return false;
-
-                adults++;
+                if (!first) sb.Append(',');
+                first = false;
+                sb.Append("{\"name\":");
+                AppendString(sb, m_Names.GetRenderedLabelName(member));
+                sb.Append(",\"age\":");
+                AppendString(sb, age.ToString());
+                sb.Append(",\"edu\":").Append(citizen.GetEducationLevel());
+                sb.Append(",\"status\":");
+                AppendString(sb, status);
+                sb.Append('}');
             }
 
-            return adults > 0;
+            sb.Append("]}");
+        }
+
+        private string HomeName(Entity household)
+        {
+            if (EntityManager.HasComponent<PropertyRenter>(household))
+            {
+                var home = EntityManager.GetComponentData<PropertyRenter>(household).m_Property;
+                if (home != Entity.Null && EntityManager.Exists(home))
+                    return m_Names.GetRenderedLabelName(home);
+            }
+
+            return EntityManager.HasComponent<HomelessHousehold>(household) ? "Homeless" : "No home";
+        }
+
+        private static void AppendString(StringBuilder sb, string value)
+        {
+            sb.Append('"');
+            foreach (char ch in value ?? "")
+            {
+                switch (ch)
+                {
+                    case '"': sb.Append("\\\""); break;
+                    case '\\': sb.Append("\\\\"); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': break;
+                    case '\t': sb.Append(' '); break;
+                    default:
+                        if (ch < ' ') sb.Append(' ');
+                        else sb.Append(ch);
+                        break;
+                }
+            }
+
+            sb.Append('"');
         }
     }
 }

@@ -46,6 +46,7 @@ export const actions = {
     fillStorage: () => trigger(GROUP, "fillStorage"),
     refreshExodus: () => trigger(GROUP, "refreshExodus"),
     runExodus: () => trigger(GROUP, "runExodus"),
+    focusExodus: (index: number, version: number) => trigger(GROUP, "focusExodus", index, version),
     captureHotkey: () => trigger(GROUP, "captureHotkey"),
     cancelHotkey: () => trigger(GROUP, "cancelHotkey"),
     resetHotkey: () => trigger(GROUP, "resetHotkey"),

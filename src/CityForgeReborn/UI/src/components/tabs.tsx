@@ -212,10 +212,27 @@ export const PeopleTab = () => {
 };
 
 const EXODUS_MODES = ["Remove instantly", "Move away"];
+const EDUCATION_SHORT = ["Uneducated", "Poorly educated", "Educated", "Well educated", "Highly educated"];
+
+interface ExodusMember { name: string; age: string; edu: number; status: string }
+interface ExodusHousehold { i: number; v: number; home: string; members: ExodusMember[] }
+interface ExodusReport {
+    levels?: { adults: number; jobless: number; matched: number }[];
+    list?: ExodusHousehold[];
+    sent?: ExodusHousehold[];
+}
+
+function parseReport(json: string): ExodusReport {
+    try {
+        return JSON.parse(json) as ExodusReport;
+    } catch {
+        return {};
+    }
+}
 
 /**
- * Sends away households where nobody works or studies. Mounted only while its card is
- * open, so the city is only scanned when someone is looking.
+ * Sends away households where no one has a job and no adult is in college. Mounted only
+ * while its card is open, so the city is only scanned when someone is looking.
  */
 const Exodus = () => {
     const [mask, setMask] = useInt("exodusEducation", 1);
@@ -223,6 +240,9 @@ const Exodus = () => {
     const households = useReadOnlyInt("exodusHouseholds", -1);
     const residents = useReadOnlyInt("exodusCitizens");
     const result = useReadOnlyString("exodusResult");
+    const report = parseReport(useReadOnlyString("exodusReport", "{}"));
+    const listed = report.list ?? [];
+    const sent = report.sent ?? [];
     const [armed, setArmed] = useState(false);
 
     useEffect(() => actions.refreshExodus(), []);
@@ -241,8 +261,8 @@ const Exodus = () => {
     return (
         <>
             <div className="cf-row__hint">
-                Households where nobody has a job or a school place, and every adult has one of the education levels below.
-                Whole households leave together; children go with their parents, and retirees are never touched.
+                Households where no one has a job and no adult is in college, and every adult has one of the education levels
+                below. Kids at school go with their parents. Whole households leave together; retirees are never touched.
             </div>
             <div className="cf-chips cf-spaced">
                 {EDUCATION_LEVELS.map((level, i) => (
@@ -251,10 +271,32 @@ const Exodus = () => {
                     </div>
                 ))}
             </div>
+            {report.levels && (
+                <div className="cf-ex-table">
+                    <div className="cf-ex-table__row cf-ex-table__head">
+                        <span className="cf-ex-table__level">Adults</span>
+                        <span>In city</span>
+                        <span>No job</span>
+                        <span>Would leave</span>
+                    </div>
+                    {report.levels.map((l, i) => (
+                        <div key={i} className={`cf-ex-table__row${mask & (1 << i) ? " cf-ex-table__row--on" : ""}`}>
+                            <span className="cf-ex-table__level">{EDUCATION_SHORT[i]}</span>
+                            <span>{l.adults.toLocaleString()}</span>
+                            <span>{l.jobless.toLocaleString()}</span>
+                            <span>{l.matched.toLocaleString()}</span>
+                        </div>
+                    ))}
+                    <div className="cf-row__hint">
+                        "No job" means no job and not in college. "Would leave" counts only those whose whole household
+                        qualifies: anyone living with a worker stays.
+                    </div>
+                </div>
+            )}
             <Segmented options={EXODUS_MODES} value={moveAway ? 1 : 0} onChange={(i) => { setArmed(false); setMoveAway(i === 1); }} />
             <div className="cf-row__hint cf-spaced">
                 {moveAway
-                    ? "They pack up and leave the normal way, by car, bus, train or plane. Expect extra traffic for a while."
+                    ? "They pack up and leave the normal way, by car, bus, train or plane. Follow them from the list once they're sent."
                     : "They vanish on the spot: homes, school seats, cars and pets are freed at once."}
             </div>
             <div className="cf-exodus__count">
@@ -274,9 +316,40 @@ const Exodus = () => {
                 <Button label="Recount" onClick={actions.refreshExodus} />
             </ButtonRow>
             {result && <Notice text={result} />}
+            {sent.length > 0 && <HouseholdList title="On their way out" action="Follow" households={sent} />}
+            {listed.length > 0 && (
+                <HouseholdList
+                    title={households > listed.length ? `Who would leave (first ${listed.length} of ${households.toLocaleString()})` : "Who would leave"}
+                    action="Show"
+                    households={listed}
+                />
+            )}
         </>
     );
 };
+
+/** Households and their members. The button selects one and points the camera at them. */
+const HouseholdList = ({ title, action, households }: { title: string; action: string; households: ExodusHousehold[] }) => (
+    <div className="cf-ex-list">
+        <div className="cf-pin-group">{title}</div>
+        {households.map((h) => (
+            <div key={`${h.i}:${h.v}`} className="cf-ex-house">
+                <div className="cf-ex-house__head">
+                    <span className="cf-ex-house__home">{h.home}</span>
+                    <div className="cf-ex-house__go" onClick={() => actions.focusExodus(h.i, h.v)}>{action}</div>
+                </div>
+                {h.members.map((m, j) => (
+                    <div key={j} className="cf-ex-member">
+                        <span className="cf-ex-member__name">{m.name}</span>
+                        <span className="cf-ex-member__info">
+                            {[m.age, m.age === "Adult" || m.age === "Elderly" ? EDUCATION_SHORT[m.edu] : "", m.status].filter((x) => x).join(" · ")}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        ))}
+    </div>
+);
 
 const percent = (v: number) => `${v}%`;
 
