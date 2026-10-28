@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { actions, useBool, useInt, useReadOnlyInt, useString } from "../bindings";
+import { actions, useBool, useInt, useReadOnlyInt, useReadOnlyString, useString } from "../bindings";
+import { CATEGORIES, Category, CHEATS, parsePins, pinIcon } from "../cheats";
 import { Button, ButtonRow, Card, Notice, Segmented, Slider, Toggle } from "./controls";
 
 const formatMoney = (amount: number) => {
@@ -261,6 +262,11 @@ export const SettingsTab = () => {
     const [color, setColor] = useString("panelColor", DEFAULT_PANEL_COLOR);
     const [resetOnLoad, setResetOnLoad] = useBool("resetCheatsOnLoad");
     const [statusBar, setStatusBar] = useBool("showStatusBar");
+    const [pinsValue, setPins] = useString("pinnedCheats");
+    const hotkey = useReadOnlyString("hotkeyLabel");
+    const [listening] = useBool("hotkeyListening");
+    const pins = parsePins(pinsValue);
+    const togglePin = (key: string) => setPins((pins.includes(key) ? pins.filter((k) => k !== key) : [...pins, key]).join(","));
     const [draft, setDraft] = useState<string | null>(null);
     const text = draft ?? color;
 
@@ -273,13 +279,47 @@ export const SettingsTab = () => {
                     value={resetOnLoad}
                     onChange={setResetOnLoad}
                 />
+            </Card>
+            <Card title="Hotkey" icon="✦">
+                <div className="cf-row__hint">Opens or closes this panel while you are in a city.</div>
+                <div className="cf-hotkey">
+                    <div className={`cf-hotkey__key${listening ? " cf-hotkey__key--listening" : ""}`}>
+                        {listening ? "Press a key… (Esc cancels)" : hotkey || "Not set"}
+                    </div>
+                    {listening ? (
+                        <Button label="Cancel" onClick={actions.cancelHotkey} />
+                    ) : (
+                        <>
+                            <Button label="Change" variant="accent" onClick={actions.captureHotkey} />
+                            <Button label="Reset" onClick={actions.resetHotkey} />
+                        </>
+                    )}
+                </div>
+                <div className="cf-row__hint cf-spaced">Hold Ctrl, Shift or Alt while pressing the key to include them.</div>
+            </Card>
+            <Card title="Buff bar" icon="▦">
                 <Toggle
-                    label="Show active cheats"
-                    hint="A strip next to the CityForge button listing the cheats that are on"
+                    label="Show buff bar"
+                    hint="Icons under the CityForge button for every cheat that is on. Click one to switch it."
                     value={statusBar}
                     onChange={setStatusBar}
                 />
-                <div className="cf-row__hint cf-spaced">Open or close this panel with Ctrl+Shift+C. Change the key in Options › CityForge Reborn.</div>
+                <div className="cf-row__hint cf-spaced">Pinned cheats stay on the bar even while off, for one-click toggling.</div>
+                {(Object.keys(CATEGORIES) as Category[]).map((cat) => (
+                    <React.Fragment key={cat}>
+                        <div className="cf-pin-group" style={{ color: CATEGORIES[cat].color }}>{CATEGORIES[cat].label}</div>
+                        {CHEATS.filter((c) => c.cat === cat).map((c) => {
+                            const pinned = pins.includes(c.key);
+                            return (
+                                <div key={c.key} className={`cf-pin-row${pinned ? " cf-pin-row--on" : ""}`} onClick={() => togglePin(c.key)}>
+                                    <img className="cf-pin-row__icon" src={c.icon} />
+                                    <span className="cf-pin-row__label">{c.label}</span>
+                                    <img className="cf-pin-row__mark" src={pinIcon} />
+                                </div>
+                            );
+                        })}
+                    </React.Fragment>
+                ))}
             </Card>
             <Card title="Appearance" icon="◐">
                 <div className="cf-row__hint cf-spaced">Panel colour</div>

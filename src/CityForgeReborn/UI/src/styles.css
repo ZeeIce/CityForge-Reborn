@@ -28,46 +28,174 @@
     border-color: #ff9a3c;
 }
 
-/* ---------- Status bar (active cheats) ---------- */
+/* ---------- Buff bar (active and pinned cheats) ---------- */
 
-.cf-status {
-    height: 40rem;
-    max-width: 520rem;
-    margin-left: 6rem;
-    padding: 0 12rem 0 6rem;
-    border-radius: 8rem;
+.cf-topleft {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+
+.cf-buffs {
+    position: absolute;
+    left: 6rem;
+    top: 0;
+    display: flex;
+    flex-direction: row;
+    padding: 4rem 0 4rem 4rem;
+    border-radius: 7rem;
+    background-color: rgba(12, 15, 19, 0.6);
+    pointer-events: auto;
+}
+
+.cf-buffs--below {
+    top: 48rem;
+}
+
+.cf-buff {
+    position: relative;
+    width: 32rem;
+    height: 32rem;
+    margin-right: 4rem;
+    border-radius: 5rem;
+    border-bottom: 2rem solid rgba(255, 255, 255, 0.18);
+    background-color: rgba(22, 27, 34, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.cf-buff:hover {
+    background-color: rgba(60, 70, 84, 0.95);
+}
+
+.cf-buff--on {
+    animation: cf-buff-pop 0.35s ease-out;
+}
+
+.cf-buff--off .cf-buff__icon {
+    opacity: 0.35;
+}
+
+.cf-buff__icon {
+    width: 18rem;
+    height: 18rem;
+}
+
+.cf-buff__pin {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    width: 10rem;
+    height: 10rem;
+    opacity: 0.85;
+}
+
+.cf-buff--more {
+    width: auto;
+    padding: 0 9rem;
+    color: #8b94a3;
+    font-size: 12rem;
+    font-weight: bold;
+}
+
+.cf-buff__tip {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 40rem;
+    padding: 6rem 10rem;
+    border-radius: 6rem;
+    border: 1rem solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(18, 22, 28, 0.97);
+    white-space: nowrap;
+    flex-direction: column;
+}
+
+.cf-buff:hover .cf-buff__tip {
+    display: flex;
+}
+
+.cf-buff__tip-title {
+    color: #e6e9ef;
+    font-size: 13rem;
+}
+
+.cf-buff__tip-sub {
+    color: #8b94a3;
+    font-size: 11rem;
+}
+
+@keyframes cf-buff-pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Pin list in the Settings tab. */
+
+.cf-pin-group {
+    margin: 8rem 0 2rem;
+    font-size: 11rem;
+    text-transform: uppercase;
+    letter-spacing: 1.3rem;
+}
+
+.cf-pin-row {
     display: flex;
     flex-direction: row;
     align-items: center;
-    background-color: rgba(22, 27, 34, 0.85);
-    border: 2rem solid rgba(255, 177, 92, 0.2);
-    color: #e6e9ef;
-    font-size: 13rem;
-    pointer-events: auto;
-    cursor: pointer;
-    overflow: hidden;
-}
-
-.cf-status:hover {
-    border-color: rgba(255, 177, 92, 0.6);
-}
-
-.cf-status__count {
-    flex-shrink: 0;
-    padding: 3rem 8rem;
-    margin-right: 10rem;
+    padding: 5rem 6rem;
     border-radius: 5rem;
-    background-color: rgba(255, 140, 50, 0.25);
-    color: #ffb15c;
-    font-weight: bold;
-    font-size: 12rem;
-    text-transform: uppercase;
-    letter-spacing: 1rem;
+    cursor: pointer;
 }
 
-.cf-status__list {
-    white-space: nowrap;
-    overflow: hidden;
+.cf-pin-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.cf-pin-row__icon {
+    width: 16rem;
+    height: 16rem;
+    margin-right: 10rem;
+    opacity: 0.8;
+}
+
+.cf-pin-row__label {
+    flex: 1;
+}
+
+.cf-pin-row__mark {
+    width: 14rem;
+    height: 14rem;
+    opacity: 0.18;
+}
+
+.cf-pin-row--on .cf-pin-row__mark {
+    opacity: 1;
+}
+
+.cf-hotkey {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6rem;
+}
+
+.cf-hotkey__key {
+    padding: 6rem 12rem;
+    margin-right: 8rem;
+    border-radius: 6rem;
+    border: 1rem solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(0, 0, 0, 0.25);
+    font-weight: bold;
+    letter-spacing: 0.5rem;
+}
+
+.cf-hotkey__key--listening {
+    border-color: #ff9a3c;
+    color: #ffb15c;
 }
 
 /* ---------- Panel shell ---------- */

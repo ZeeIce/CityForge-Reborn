@@ -31,9 +31,13 @@ namespace CityForgeReborn.Systems
         private CitizenCheatSystem m_Citizens;
         private BuildingCheatSystem m_Buildings;
 
+        private static readonly Regex kPinList = new Regex("^[A-Za-z,]{0,1000}$");
+
         private ProxyAction m_ToggleAction;
+        private HotkeyRebinder m_Rebinder;
         // Bumped on each hotkey press; the panel toggles whenever the value changes.
         private int m_TogglePresses;
+        private int m_LabelRefresh;
 
         protected override void OnCreate()
         {
@@ -55,6 +59,11 @@ namespace CityForgeReborn.Systems
             });
 
             RegisterBool("resetCheatsOnLoad", () => s.ResetCheatsOnLoad, v => s.ResetCheatsOnLoad = v);
+            RegisterString("pinnedCheats", () => s.PinnedCheats ?? "", v =>
+            {
+                if (kPinList.IsMatch(v))
+                    s.PinnedCheats = v;
+            });
 
             RegisterBool("infiniteMoney", () => s.InfiniteMoney, v => s.InfiniteMoney = v);
 
@@ -107,11 +116,22 @@ namespace CityForgeReborn.Systems
             // Read-only game state.
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "currentMilestone", () => m_Milestones.CurrentMilestone));
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "maxMilestone", () => m_Milestones.MaxMilestone));
-            AddUpdateBinding(new GetterValueBinding<string>(kGroup, "activeCheats", () => string.Join("|", s.ActiveCheats())));
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "togglePanel", () => m_TogglePresses));
 
             m_ToggleAction = s.GetAction(CityForgeSetting.kTogglePanelAction);
             m_ToggleAction.shouldBeEnabled = true;
+            m_Rebinder = new HotkeyRebinder(m_ToggleAction);
+            AddUpdateBinding(new GetterValueBinding<string>(kGroup, "hotkeyLabel", () => m_Rebinder.Label));
+            AddUpdateBinding(new GetterValueBinding<bool>(kGroup, "hotkeyListening", () => m_Rebinder.Listening));
+            AddBinding(new TriggerBinding(kGroup, "captureHotkey", () => m_Rebinder.Start()));
+            AddBinding(new TriggerBinding(kGroup, "cancelHotkey", () => m_Rebinder.Cancel()));
+            AddBinding(new TriggerBinding(kGroup, "resetHotkey", () =>
+            {
+                m_Rebinder.Cancel();
+                s.ResetHotkeys = true;
+                m_Rebinder.Refresh();
+                s.ApplyAndSave();
+            }));
 
             // Generic setters.
             AddBinding(new TriggerBinding<string, bool>(kGroup, "setBool", (key, value) => Set(m_BoolSetters, key, value)));
@@ -142,8 +162,23 @@ namespace CityForgeReborn.Systems
 
         protected override void OnUpdate()
         {
-            if (m_ToggleAction.WasPerformedThisFrame() && GameManager.instance.gameMode.IsGame())
+            if (m_Rebinder.Listening)
+            {
+                // While choosing a new key, the old one mustn't toggle the panel.
+                if (m_Rebinder.Update())
+                    Mod.Settings.ApplyAndSave();
+            }
+            else if (m_ToggleAction.WasPerformedThisFrame() && GameManager.instance.gameMode.IsGame())
+            {
                 m_TogglePresses++;
+            }
+
+            // The key can also be changed in Options, so the label is re-read now and then.
+            if (++m_LabelRefresh >= 60)
+            {
+                m_LabelRefresh = 0;
+                m_Rebinder.Refresh();
+            }
 
             base.OnUpdate();
         }

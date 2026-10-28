@@ -39,8 +39,9 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 - **Force Build**: buildings spawn even with no demand or a poor lot
 
 **Settings**
-- Open the panel with a hotkey (Ctrl+Shift+C, change it in Options)
-- See which cheats are on at a glance, next to the CityForge button
+- Open the panel with a hotkey (Ctrl+Shift+C by default, set your own in the Settings tab)
+- Buff bar: an icon for every cheat that is on, under the CityForge button. Click one to switch it
+- Pin your favourite cheats to the buff bar for one-click toggling
 - Change the panel colour
 - Turn all cheats off when you load a city
 - Keep achievements on while using mods (in the game's Options menu, from the main menu)
@@ -78,7 +79,7 @@ Open an [issue](../../issues) and attach this log file:
 - [ ] Disasters on/off
 - [x] Hotkey to open the panel
 - [ ] Save and load cheat presets
-- [x] Status bar showing active cheats
+- [x] Buff bar showing active cheats, with pinning
 - [x] Lock the achievements option while a city is loaded
 - [ ] Smoother instant construction on big builds
 - [x] Retry saving settings if another mod is saving

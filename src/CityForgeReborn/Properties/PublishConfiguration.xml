@@ -41,8 +41,9 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 
 **Extras**
 
-*   Hotkey to open the panel (Ctrl+Shift+C, change it in Options)
-*   Status bar showing which cheats are on
+*   Hotkey to open the panel (Ctrl+Shift+C by default, set your own)
+*   Buff bar: an icon for every cheat that is on; click one to switch it
+*   Pin cheats to the buff bar for one-click toggling
 *   Panel colors
 *   Reset cheats on load
 *   Keep achievements on (set it in the main menu)
@@ -64,6 +65,6 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 	<Tag Value="Code Mod" />
 	<ModVersion Value="1.2.0" />
 	<GameVersion Value="1.*" />
-	<ChangeLog Value="Control update. New: Ctrl+Shift+C opens the panel (change it in Options). New: a strip next to the button shows which cheats are on. Keep achievements can now only be changed from the main menu. Fixed: settings could fail to save when other mods saved at the same time." />
+	<ChangeLog Value="Control update. New: a hotkey opens the panel (Ctrl+Shift+C, or set your own in the Settings tab). New: buff bar under the button shows every cheat that is on; click an icon to switch it, and pin favourites for one-click toggling. Keep achievements can now only be changed from the main menu. Fixed: settings could fail to save when other mods saved at the same time." />
 	<ExternalLink Type="github" Url="https://github.com/ZeeIce/CityForge-Reborn" />
 </Publish>

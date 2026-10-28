@@ -14,6 +14,10 @@ module.exports = {
         path: outputPath,
         filename: "[name].mjs",
         library: { type: "module" },
+        // The game serves every UI mod's folder under coui://ui-mods/.
+        publicPath: "coui://ui-mods/",
+        // Only wipe the local build folder, never the game's Mods folder.
+        clean: !userDataPath,
     },
     experiments: { outputModule: true },
     resolve: { extensions: [".tsx", ".ts", ".js"] },
@@ -21,6 +25,8 @@ module.exports = {
         rules: [
             { test: /\.tsx?$/, use: "ts-loader", exclude: /node_modules/ },
             { test: /\.css$/, use: ["style-loader", "css-loader"] },
+            // Namespaced folder so the files can't clash with other mods' assets.
+            { test: /\.svg$/i, type: "asset/resource", generator: { filename: "cityforge-icons/[name][ext]" } },
         ],
     },
     // These are provided by the game at runtime.

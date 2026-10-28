@@ -14,7 +14,7 @@ export interface PanelState {
     tab: string;
 }
 
-let state: PanelState = { open: false, x: 120, y: 80, width: 520, height: 640, tab: "economy" };
+let state: PanelState = { open: false, x: 120, y: 110, width: 520, height: 640, tab: "economy" };
 const listeners = new Set<() => void>();
 
 export function getPanelState(): PanelState {

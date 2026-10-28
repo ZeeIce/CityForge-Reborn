@@ -25,6 +25,7 @@
     <Reference Include="Colossal.Localization"><Private>false</Private></Reference>
     <Reference Include="Colossal.PSI.Common"><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><Private>false</Private></Reference>
     <Reference Include="Unity.Burst"><Private>false</Private></Reference>
     <Reference Include="Unity.Collections"><Private>false</Private></Reference>
     <Reference Include="Unity.Entities"><Private>false</Private></Reference>
@@ -52,6 +53,10 @@
   <Target Name="BuildUI" AfterTargets="DeployWIP">
     <!-- An empty CSII_USERDATAPATH makes webpack write to UI\build. -->
     <Exec Command="npm run build" WorkingDirectory="UI" EnvironmentVariables="CSII_USERDATAPATH=" />
-    <Copy SourceFiles="UI\build\$(AssemblyName).mjs" DestinationFolder="$(DeployDir)" />
+    <!-- The bundle plus its assets (the buff-bar icons). Listed here so the glob runs after the build. -->
+    <ItemGroup>
+      <UIBuildFiles Include="UI\build\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(UIBuildFiles)" DestinationFiles="@(UIBuildFiles->'$(DeployDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 </Project>

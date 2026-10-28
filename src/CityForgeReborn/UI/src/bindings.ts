@@ -44,4 +44,7 @@ export const actions = {
     addDevTreePoints: (points: number) => trigger(GROUP, "addDevTreePoints", points),
     applyEducationDistribution: () => trigger(GROUP, "applyEducationDistribution"),
     fillStorage: () => trigger(GROUP, "fillStorage"),
+    captureHotkey: () => trigger(GROUP, "captureHotkey"),
+    cancelHotkey: () => trigger(GROUP, "cancelHotkey"),
+    resetHotkey: () => trigger(GROUP, "resetHotkey"),
 };

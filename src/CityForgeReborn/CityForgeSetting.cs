@@ -72,6 +72,8 @@ namespace CityForgeReborn
 
         [SettingsUIHidden] public string PanelColor { get; set; }
         [SettingsUIHidden] public bool ResetCheatsOnLoad { get; set; }
+        /// <summary>Cheats kept on the buff bar even while off: comma-separated option keys, in pin order.</summary>
+        [SettingsUIHidden] public string PinnedCheats { get; set; }
 
         // ---- Money ----
 
@@ -162,50 +164,6 @@ namespace CityForgeReborn
             OfficeOverride = OfficeForce = false;
         }
 
-        /// <summary>Short labels for every ongoing cheat that is on, for the status bar.</summary>
-        public List<string> ActiveCheats()
-        {
-            var on = new List<string>();
-            void Add(bool active, string label)
-            {
-                if (active) on.Add(label);
-            }
-
-            Add(InfiniteMoney, "Infinite money");
-            Add(KeepMilestonesUnlocked, "Milestones unlocked");
-            Add(InstantConstruction, "Instant build");
-            Add(!InstantConstruction && BuildSpeed != 1, $"Build speed {SpeedLabel(BuildSpeed)}");
-            Add(BoostMoveIn, $"Move-ins {MoveInMultiplier}×");
-            Add(BoostTourists, $"Tourists {TouristMultiplier}×");
-            Add(MaxHappiness, "Max happiness");
-            Add(RichCitizens, "Rich citizens");
-            Add(MaxEducation, "Max education");
-            Add(LevelUpBuildings, $"Level {BuildingLevelTarget} buildings");
-            Add(KeepStorageFull, "Storage full");
-            Add(MaxEfficiency, "Max efficiency");
-            Add(UnlimitedWater, "Unlimited water");
-            Add(UnlimitedElectricity, "Unlimited electricity");
-            Add(NoPollution, "No pollution");
-            AddDemand(on, "Residential", ResidentialOverride, ResidentialForce);
-            AddDemand(on, "Commercial", CommercialOverride, CommercialForce);
-            AddDemand(on, "Industrial", IndustrialOverride, IndustrialForce);
-            AddDemand(on, "Office", OfficeOverride, OfficeForce);
-            return on;
-        }
-
-        private static void AddDemand(List<string> on, string zone, bool overridden, bool force)
-        {
-            if (overridden) on.Add($"{zone} demand");
-            if (force) on.Add($"{zone} Force Build");
-        }
-
-        private static string SpeedLabel(int index)
-        {
-            var speeds = ConstructionCheatSystem.SpeedMultipliers;
-            float v = speeds[System.Math.Max(0, System.Math.Min(index, speeds.Length - 1))];
-            return v == 0.5f ? "½×" : $"{v:0}×";
-        }
-
         public override void SetDefaults()
         {
             ShowToolbarButton = true;
@@ -213,6 +171,7 @@ namespace CityForgeReborn
             KeepAchievementsEnabled = false;
             PanelColor = kDefaultPanelColor;
             ResetCheatsOnLoad = false;
+            PinnedCheats = "";
 
             InfiniteMoney = false;
 
@@ -287,14 +246,14 @@ namespace CityForgeReborn
 
                 { m_Setting.GetOptionGroupLocaleID(CityForgeSetting.kHotkeyGroup), "Hotkeys" },
 
-                { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.ShowStatusBar)), "Show active cheats" },
-                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.ShowStatusBar)), "Show a strip next to the CityForge button listing the cheats that are on. Click it to open the panel." },
+                { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.ShowStatusBar)), "Show buff bar" },
+                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.ShowStatusBar)), "Show an icon under the CityForge button for every cheat that is on, plus any you pin. Click an icon to switch that cheat." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.KeepAchievementsEnabled)), "Keep achievements enabled" },
                 { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.KeepAchievementsEnabled)), "Allow Steam/Paradox achievements to unlock while mods are active. Can only be changed from the main menu, before a city is loaded." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.TogglePanelBinding)), "Open or close the panel" },
-                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.TogglePanelBinding)), "Keyboard shortcut for the CityForge panel while in a city." },
+                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.TogglePanelBinding)), "Keyboard shortcut for the CityForge panel while in a city. You can also change it from the panel's Settings tab." },
                 { m_Setting.GetBindingKeyLocaleID(CityForgeSetting.kTogglePanelAction), "Open or close the panel" },
                 { m_Setting.GetBindingMapLocaleID(), "CityForge Reborn" },
 
