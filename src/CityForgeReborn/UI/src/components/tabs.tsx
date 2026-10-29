@@ -230,13 +230,18 @@ function parseReport(json: string): ExodusReport {
     }
 }
 
+/** Same rounding as ExodusSystem.Share on the C# side: at least one, at most all. */
+const share = (count: number, pct: number) => (count <= 0 ? 0 : Math.max(1, Math.min(count, Math.round((count * pct) / 100))));
+
 /**
- * Sends away households where no one has a job and no adult is in college. Mounted only
- * while its card is open, so the city is only scanned when someone is looking.
+ * Sends away households where no one has a job and no adult is in college, laid out as
+ * one sentence: apply to [N%] of households that are jobless and [education], [how].
+ * Mounted only while its card is open, so the city is only scanned when someone looks.
  */
 const Exodus = () => {
     const [mask, setMask] = useInt("exodusEducation", 1);
     const [moveAway, setMoveAway] = useBool("exodusMoveAway");
+    const [pct, setPct] = useInt("exodusPercent", 50);
     const households = useReadOnlyInt("exodusHouseholds", -1);
     const residents = useReadOnlyInt("exodusCitizens");
     const result = useReadOnlyString("exodusResult");
@@ -252,21 +257,25 @@ const Exodus = () => {
         return () => clearTimeout(timer);
     }, [armed]);
 
-    const toggleLevel = (i: number) => {
+    const disarm = <T,>(fn: (v: T) => void) => (v: T) => {
         setArmed(false);
-        setMask(mask ^ (1 << i));
+        fn(v);
     };
+    const take = share(households, pct);
     const verb = moveAway ? "Send away" : "Remove";
+    const ready = households > 0 && mask !== 0;
 
     return (
         <>
             <div className="cf-row__hint">
-                Households where no one has a job and no adult is in college, and every adult has one of the education levels
-                below. Kids at school go with their parents. Whole households leave together; retirees are never touched.
+                Clears out households where no one has a job and no adult is in college. Whole households leave together, kids at
+                school included; retirees are never touched.
             </div>
-            <div className="cf-chips cf-spaced">
+
+            <div className="cf-ex-step">1 · Who: jobless households whose adults are</div>
+            <div className="cf-chips">
                 {EDUCATION_LEVELS.map((level, i) => (
-                    <div key={level.key} className={`cf-chip${mask & (1 << i) ? " cf-chip--on" : ""}`} onClick={() => toggleLevel(i)}>
+                    <div key={level.key} className={`cf-chip${mask & (1 << i) ? " cf-chip--on" : ""}`} onClick={() => disarm(setMask)(mask ^ (1 << i))}>
                         {level.label}
                     </div>
                 ))}
@@ -293,20 +302,31 @@ const Exodus = () => {
                     </div>
                 </div>
             )}
-            <Segmented options={EXODUS_MODES} value={moveAway ? 1 : 0} onChange={(i) => { setArmed(false); setMoveAway(i === 1); }} />
+
+            <div className="cf-ex-step">2 · How many</div>
+            <Slider label="Share of matching households, picked at random" value={pct} min={1} max={100} format={percent} onCommit={disarm(setPct)} />
+            <div className="cf-row__hint">Run it a few times at a lower share to thin them out gradually.</div>
+
+            <div className="cf-ex-step">3 · How they go</div>
+            <Segmented options={EXODUS_MODES} value={moveAway ? 1 : 0} onChange={(i) => disarm(setMoveAway)(i === 1)} />
             <div className="cf-row__hint cf-spaced">
                 {moveAway
-                    ? "They pack up and leave the normal way, by car, bus, train or plane. Follow them from the list once they're sent."
-                    : "They vanish on the spot: homes, school seats, cars and pets are freed at once."}
+                    ? "They pack up and leave the normal way, by car, bus, train or plane, so expect busier roads and transit for a while. Follow them from the list once they're sent."
+                    : "They vanish on the spot. The game's own clean-up removes their cars, bikes and pets, frees school places and hospital beds, and puts the home back on the market."}
             </div>
+
             <div className="cf-exodus__count">
-                {households < 0 ? "Counting…" : mask === 0 ? "Pick at least one education level." : `${households.toLocaleString()} households · ${residents.toLocaleString()} residents match`}
+                {households < 0
+                    ? "Counting…"
+                    : mask === 0
+                    ? "Pick at least one education level."
+                    : `${verb} ${take.toLocaleString()} of ${households.toLocaleString()} matching households (${pct}%) · ${residents.toLocaleString()} residents match in total`}
             </div>
             <ButtonRow>
                 <Button
-                    label={armed ? `Click again to ${verb.toLowerCase()} ${households.toLocaleString()} households` : `${verb} matching households`}
+                    label={armed ? `Click again to ${verb.toLowerCase()} ${take.toLocaleString()} households` : `${verb} ${take.toLocaleString()} households`}
                     variant={armed ? "negative" : "accent"}
-                    disabled={households <= 0 || mask === 0}
+                    disabled={!ready}
                     onClick={() => {
                         if (!armed) return setArmed(true);
                         setArmed(false);
@@ -316,27 +336,43 @@ const Exodus = () => {
                 <Button label="Recount" onClick={actions.refreshExodus} />
             </ButtonRow>
             {result && <Notice text={result} />}
-            {sent.length > 0 && <HouseholdList title="On their way out" action="Follow" households={sent} />}
+            {sent.length > 0 && <HouseholdList title="On their way out" households={sent} follow />}
             {listed.length > 0 && (
                 <HouseholdList
-                    title={households > listed.length ? `Who would leave (first ${listed.length} of ${households.toLocaleString()})` : "Who would leave"}
-                    action="Show"
+                    title={households > listed.length ? `Who matches (first ${listed.length} of ${households.toLocaleString()})` : "Who matches"}
                     households={listed}
+                    actionLabel={verb}
                 />
             )}
         </>
     );
 };
 
-/** Households and their members. The button selects one and points the camera at them. */
-const HouseholdList = ({ title, action, households }: { title: string; action: string; households: ExodusHousehold[] }) => (
+/**
+ * Households and their members. Show/Follow selects one and points the camera at them;
+ * the action button removes or sends away just that household.
+ */
+const HouseholdList = ({
+    title,
+    households,
+    follow,
+    actionLabel,
+}: {
+    title: string;
+    households: ExodusHousehold[];
+    follow?: boolean;
+    actionLabel?: string;
+}) => (
     <div className="cf-ex-list">
         <div className="cf-pin-group">{title}</div>
         {households.map((h) => (
             <div key={`${h.i}:${h.v}`} className="cf-ex-house">
                 <div className="cf-ex-house__head">
                     <span className="cf-ex-house__home">{h.home}</span>
-                    <div className="cf-ex-house__go" onClick={() => actions.focusExodus(h.i, h.v)}>{action}</div>
+                    <div className="cf-ex-house__go" onClick={() => actions.focusExodus(h.i, h.v)}>{follow ? "Follow" : "Show"}</div>
+                    {actionLabel && (
+                        <div className="cf-ex-house__go cf-ex-house__go--act" onClick={() => actions.exodusOne(h.i, h.v)}>{actionLabel}</div>
+                    )}
                 </div>
                 {h.members.map((m, j) => (
                     <div key={j} className="cf-ex-member">

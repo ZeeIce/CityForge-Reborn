@@ -47,6 +47,7 @@ export const actions = {
     refreshExodus: () => trigger(GROUP, "refreshExodus"),
     runExodus: () => trigger(GROUP, "runExodus"),
     focusExodus: (index: number, version: number) => trigger(GROUP, "focusExodus", index, version),
+    exodusOne: (index: number, version: number) => trigger(GROUP, "exodusOne", index, version),
     captureHotkey: () => trigger(GROUP, "captureHotkey"),
     cancelHotkey: () => trigger(GROUP, "cancelHotkey"),
     resetHotkey: () => trigger(GROUP, "resetHotkey"),

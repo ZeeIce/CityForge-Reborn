@@ -11,6 +11,7 @@ using Game.UI;
 using Game.UI.InGame;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace CityForgeReborn.Systems
 {
@@ -71,6 +72,68 @@ namespace CityForgeReborn.Systems
 
         public void RequestRun() => m_RunRequested = true;
 
+        /// <summary>How many of <paramref name="count"/> matches a run takes at <paramref name="percent"/>; at least one.</summary>
+        public static int Share(int count, int percent) =>
+            count == 0 ? 0 : System.Math.Max(1, System.Math.Min(count, (int)System.Math.Round(count * percent / 100.0)));
+
+        /// <summary>Sends away (or removes) one household picked from the panel's list.</summary>
+        public void ApplyOne(int index, int version)
+        {
+            var household = new Entity { Index = index, Version = version };
+            if (!GameManager.instance.gameMode.IsGame() || !EntityManager.Exists(household) ||
+                !EntityManager.HasBuffer<HouseholdCitizen>(household) ||
+                EntityManager.HasComponent<Deleted>(household) || EntityManager.HasComponent<MovingAway>(household))
+                return;
+
+            var one = new NativeArray<Entity>(1, Allocator.Temp);
+            one[0] = household;
+            LastResult = Apply(one, Mod.Settings.ExodusMoveAway, "");
+            Mod.Log.Info($"Unemployed exodus, one household: {LastResult}");
+            one.Dispose();
+            m_CountRequested = true;
+        }
+
+        /// <summary>Removes or sends away the given households and describes who went.</summary>
+        private string Apply(NativeArray<Entity> households, bool moveAway, string note)
+        {
+            int residents = 0;
+            var adults = new int[kLevels];
+            foreach (var household in households)
+            {
+                var members = EntityManager.GetBuffer<HouseholdCitizen>(household, true);
+                residents += members.Length;
+                for (int i = 0; i < members.Length; i++)
+                {
+                    var member = members[i].m_Citizen;
+                    if (!EntityManager.HasComponent<Citizen>(member))
+                        continue;
+                    var citizen = EntityManager.GetComponentData<Citizen>(member);
+                    int level = citizen.GetEducationLevel();
+                    if (citizen.GetAge() == CitizenAge.Adult && level >= 0 && level < kLevels)
+                        adults[level]++;
+                }
+            }
+
+            if (moveAway)
+            {
+                foreach (var household in households)
+                {
+                    EntityManager.AddComponentData(household, new MovingAway { m_Reason = MoveAwayReason.NotHappy });
+                    m_Sent.Insert(0, household);
+                    if (m_Sent.Count > kListed)
+                        m_Sent.RemoveAt(kListed);
+                }
+            }
+            else if (households.Length > 0)
+            {
+                EntityManager.AddComponent<Deleted>(households);
+            }
+
+            string verb = moveAway ? "sent away" : "removed";
+            string what = households.Length == 1 ? "1 household" : $"{households.Length:N0} households";
+            return $"{what}{note}, {residents:N0} residents, {verb}: {DescribeAdults(adults)}.";
+        }
+
         /// <summary>Selects a household's first adult and points the camera at them.</summary>
         public void Focus(int index, int version)
         {
@@ -125,27 +188,22 @@ namespace CityForgeReborn.Systems
                 return;
             }
 
-            m_Sent.Clear();
-            if (matches.Length > 0)
+            // "Thanos mode": only a share of the matches, picked at random, so a big
+            // exodus can be spread over several runs instead of flooding the roads.
+            int take = Share(matches.Length, s.ExodusPercent);
+            var random = new Random((uint)System.Environment.TickCount | 1u);
+            for (int i = 0; i < take; i++)
             {
-                if (s.ExodusMoveAway)
-                {
-                    foreach (var household in matches)
-                    {
-                        EntityManager.AddComponentData(household, new MovingAway { m_Reason = MoveAwayReason.NotHappy });
-                        if (m_Sent.Count < kListed)
-                            m_Sent.Add(household);
-                    }
-                }
-                else
-                {
-                    EntityManager.AddComponent<Deleted>(matches.AsArray());
-                }
+                int j = random.NextInt(i, matches.Length);
+                (matches[i], matches[j]) = (matches[j], matches[i]);
             }
 
-            string verb = s.ExodusMoveAway ? "sent away" : "removed";
-            LastResult = $"{matches.Length:N0} households ({scan.Residents:N0} residents) {verb}: {DescribeAdults(scan.MatchedAdults)}.";
+            m_Sent.Clear();
+            var chosen = new NativeArray<Entity>(take, Allocator.Temp);
+            NativeArray<Entity>.Copy(matches.AsArray(), chosen, take);
+            LastResult = Apply(chosen, s.ExodusMoveAway, $" ({s.ExodusPercent}% of {matches.Length:N0} matching)");
             Mod.Log.Info($"Unemployed exodus: {LastResult} Education mask {mask}.");
+            chosen.Dispose();
             matches.Dispose();
 
             // They are gone (or leaving, which the query excludes), so recount next frame.

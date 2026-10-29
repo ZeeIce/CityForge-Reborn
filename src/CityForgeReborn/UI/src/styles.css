@@ -441,6 +441,25 @@
     letter-spacing: 0.8rem;
 }
 
+.cf-ex-step {
+    margin: 12rem 0 6rem;
+    font-size: 11rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1rem;
+    color: #ffb15c;
+}
+
+.cf-ex-house__go.cf-ex-house__go--act {
+    margin-left: 6rem;
+    border-color: rgba(255, 110, 90, 0.45);
+    color: #ff9c8c;
+}
+
+.cf-ex-house__go.cf-ex-house__go--act:hover {
+    background-color: rgba(255, 110, 90, 0.16);
+}
+
 .cf-ex-list {
     margin-top: 10rem;
 }
