@@ -33,6 +33,7 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 
 *   Boost move-ins and tourists (up to 10×)
 *   Max happiness, rich citizens, max education
+*   Unemployed exodus: remove jobless households by education level, a share at a time, and see exactly who goes first
 
 **Demand**
 
@@ -46,7 +47,7 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 *   Pin cheats to the buff bar for one-click toggling
 *   Panel colors
 *   Reset cheats on load
-*   Keep achievements on (set it in the main menu)
+*   Keep achievements on (set it in the main menu), with a live status in the Settings tab
 
 **Roadmap** (No particular order)
 
@@ -63,9 +64,9 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 	</LongDescription>
 	<Thumbnail Value="Properties/Thumbnail.png" />
 	<Tag Value="Code Mod" />
-	<ModVersion Value="1.2.0" />
+	<ModVersion Value="1.2.1" />
 	<GameVersion Value="1.*" />
-	<ChangeLog Value="Control update. New: a hotkey opens the panel (Ctrl+Shift+C, or set your own in the Settings tab). New: buff bar under the button shows every cheat that is on; click an icon to switch it, and pin favourites for one-click toggling. Keep achievements can now only be changed from the main menu. Fixed: settings could fail to save when other mods saved at the same time." />
+	<ChangeLog Value="New: Unemployed exodus in the People tab, requested by nilesism. Removes households where no one has a job and no adult is in college, filtered by education level. Apply it to a share of the matches (1-100%, 50% by default), picked at random. See who matches first: a breakdown per education level and a list of households with Show and Remove. The game&apos;s own clean-up frees their homes, cars, bikes, pets and school places. New: the Settings tab shows whether achievements are really active. Changed: clearer description for Keep achievements enabled; the game still warns that mods turn achievements off even when CityForge has them on." />
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/cityforge-reborn-all-in-one-cheat-sandbox-panel-discussion-feedback.1947097/" />
 	<ExternalLink Type="github" Url="https://github.com/ZeeIce/CityForge-Reborn" />
 </Publish>

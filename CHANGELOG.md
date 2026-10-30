@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.1 (not yet released)
+## 1.2.1
 
 - New: Unemployed exodus (People tab), requested on the Paradox forum by nilesism. Removes households where no one has a job and no adult is in college, filtered by the adults' education level
   - Apply it to a share of the matching households (1-100%, 50% by default), picked at random, so a big exodus can be spread out

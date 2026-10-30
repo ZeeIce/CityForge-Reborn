@@ -33,7 +33,7 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 - Boost move-ins and tourists (up to 10×)
 - Max happiness, rich citizens, max education
 - Set your own education mix
-- **Unemployed exodus**: send away jobless households, filtered by education level, instantly or the normal way
+- **Unemployed exodus**: remove jobless households by education level, a share at a time, and see exactly who goes first
 
 **Demand**
 - Set demand for each zone yourself
@@ -45,7 +45,7 @@ CityForge Reborn is fully open source under the GPL-3.0 license, and it will alw
 - Pin your favourite cheats to the buff bar for one-click toggling
 - Change the panel colour
 - Turn all cheats off when you load a city
-- Keep achievements on while using mods (in the game's Options menu, from the main menu)
+- Keep achievements on while using mods (in the game's Options menu, from the main menu), with a live status in the Settings tab
 
 ## Install
 
