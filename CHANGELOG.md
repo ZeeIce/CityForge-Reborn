@@ -2,11 +2,10 @@
 
 ## 1.2.1 (not yet released)
 
-- New: Unemployed exodus (People tab), requested on the Paradox forum by nilesism. Clears out households where no one has a job and no adult is in college, filtered by the adults' education level
+- New: Unemployed exodus (People tab), requested on the Paradox forum by nilesism. Removes households where no one has a job and no adult is in college, filtered by the adults' education level
   - Apply it to a share of the matching households (1-100%, 50% by default), picked at random, so a big exodus can be spread out
-  - Remove instantly (the game's own clean-up frees homes, cars, bikes, pets and school places) or move away the normal way
+  - Households vanish on the spot; the game's own clean-up frees their homes, cars, bikes, pets and school places
   - See who matches: a breakdown per education level and a list of households with their members. Show jumps the camera to them; each can also be removed on its own
-  - Follow households on their way out after sending them away
 - New: the Settings tab shows whether achievements are actually active. The game warns that mods turn achievements off whenever any mod is used, even while Keep achievements enabled has them on, which made the option look broken
 - Changed: clearer description for Keep achievements enabled
 

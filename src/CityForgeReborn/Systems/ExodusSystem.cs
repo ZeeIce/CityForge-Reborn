@@ -16,15 +16,13 @@ using Unity.Mathematics;
 namespace CityForgeReborn.Systems
 {
     /// <summary>
-    /// Unemployed exodus: sends away households where no one has a job, no adult is in
+    /// Unemployed exodus: removes households where no one has a job, no adult is in
     /// college or university, and every adult has one of the chosen education levels.
     /// Children and teens at school don't keep a family here. Whole households go, so no
     /// children are left behind; retirees-only households are never touched.
-    /// "Remove instantly" marks the household Deleted, and the game's own
-    /// HouseholdAndCitizenRemoveSystem then removes the residents and frees their home,
-    /// school seats, cars and pets. "Move away" adds MovingAway, the same flag the game
-    /// sets for unhappy households, so they leave by the normal route.
-    /// Both go through the EndFrameBarrier, like the game's own move-away code. This
+    /// The household is marked Deleted, and the game's own HouseholdAndCitizenRemoveSystem
+    /// then removes the residents and frees their home, school seats, cars and pets.
+    /// Deleted goes through the EndFrameBarrier, like the game's own move-away code. This
     /// system runs after the frame's modification phases, and clean-up destroys every
     /// Deleted entity at the end of the frame, so a Deleted added here directly would
     /// destroy the household before HouseholdAndCitizenRemoveSystem saw it, leaving its
@@ -53,14 +51,12 @@ namespace CityForgeReborn.Systems
         private readonly List<Entity> m_OneRequested = new List<Entity>();
         private bool m_CountRequested;
         private bool m_RunRequested;
-        // Households sent away by the last "Move away" run, so they can be followed.
-        private readonly List<Entity> m_Sent = new List<Entity>();
 
         /// <summary>Households matching the current filter, or -1 before the first count.</summary>
         public int MatchingHouseholds { get; private set; } = -1;
         public int MatchingCitizens { get; private set; }
         public string LastResult { get; private set; } = "";
-        /// <summary>JSON for the panel: per-level breakdown, the matching sample and the sent list.</summary>
+        /// <summary>JSON for the panel: per-level breakdown and the matching sample.</summary>
         public string Report { get; private set; } = "{}";
 
         protected override void OnCreate()
@@ -93,7 +89,7 @@ namespace CityForgeReborn.Systems
             m_OneRequested.Add(new Entity { Index = index, Version = version });
         }
 
-        /// <summary>Sends away (or removes) one household from the panel's list.</summary>
+        /// <summary>Removes one household from the panel's list.</summary>
         private void ApplyQueuedOne(Entity household)
         {
             if (!EntityManager.Exists(household) ||
@@ -104,14 +100,14 @@ namespace CityForgeReborn.Systems
 
             var one = new NativeArray<Entity>(1, Allocator.Temp);
             one[0] = household;
-            LastResult = Apply(one, Mod.Settings.ExodusMoveAway, "");
+            LastResult = Apply(one, "");
             Mod.Log.Info($"Unemployed exodus, one household: {LastResult}");
             one.Dispose();
             m_CountRequested = true;
         }
 
-        /// <summary>Removes or sends away the given households and describes who went.</summary>
-        private string Apply(NativeArray<Entity> households, bool moveAway, string note)
+        /// <summary>Removes the given households and describes who went.</summary>
+        private string Apply(NativeArray<Entity> households, string note)
         {
             int residents = 0;
             var adults = new int[kLevels];
@@ -135,22 +131,11 @@ namespace CityForgeReborn.Systems
             foreach (var household in households)
             {
                 m_Pending.Add(household);
-                if (moveAway)
-                {
-                    buffer.AddComponent(household, new MovingAway { m_Reason = MoveAwayReason.NotHappy });
-                    m_Sent.Insert(0, household);
-                    if (m_Sent.Count > kListed)
-                        m_Sent.RemoveAt(kListed);
-                }
-                else
-                {
-                    buffer.AddComponent<Deleted>(household);
-                }
+                buffer.AddComponent<Deleted>(household);
             }
 
-            string verb = moveAway ? "sent away" : "removed";
             string what = households.Length == 1 ? "1 household" : $"{households.Length:N0} households";
-            return $"{what}{note}, {residents:N0} residents, {verb}: {DescribeAdults(adults)}.";
+            return $"{what}{note}, {residents:N0} residents, removed: {DescribeAdults(adults)}.";
         }
 
         /// <summary>Selects a household's first adult and points the camera at them.</summary>
@@ -189,7 +174,6 @@ namespace CityForgeReborn.Systems
             if (!GameManager.instance.gameMode.IsGame())
             {
                 MatchingHouseholds = -1;
-                m_Sent.Clear();
                 m_Pending.Clear();
                 m_OneRequested.Clear();
                 return;
@@ -199,9 +183,8 @@ namespace CityForgeReborn.Systems
                 ApplyQueuedOne(household);
             m_OneRequested.Clear();
 
-            // Queued changes land at the start of the next frame; until then keep counting.
-            m_Pending.RemoveWhere(h => !EntityManager.Exists(h) ||
-                EntityManager.HasComponent<Deleted>(h) || EntityManager.HasComponent<MovingAway>(h));
+            // Queued removals land at the start of the next frame; until then keep counting.
+            m_Pending.RemoveWhere(h => !EntityManager.Exists(h) || EntityManager.HasComponent<Deleted>(h));
             if (m_Pending.Count > 0)
                 m_CountRequested = true;
 
@@ -220,7 +203,7 @@ namespace CityForgeReborn.Systems
             }
 
             // "Thanos mode": only a share of the matches, picked at random, so a big
-            // exodus can be spread over several runs instead of flooding the roads.
+            // exodus can be spread over several runs.
             int take = Share(matches.Length, s.ExodusPercent);
             var random = new Random((uint)System.Environment.TickCount | 1u);
             for (int i = 0; i < take; i++)
@@ -229,15 +212,14 @@ namespace CityForgeReborn.Systems
                 (matches[i], matches[j]) = (matches[j], matches[i]);
             }
 
-            m_Sent.Clear();
             var chosen = new NativeArray<Entity>(take, Allocator.Temp);
             NativeArray<Entity>.Copy(matches.AsArray(), chosen, take);
-            LastResult = Apply(chosen, s.ExodusMoveAway, $" ({s.ExodusPercent}% of {matches.Length:N0} matching)");
+            LastResult = Apply(chosen, $" ({s.ExodusPercent}% of {matches.Length:N0} matching)");
             Mod.Log.Info($"Unemployed exodus: {LastResult} Education mask {mask}.");
             chosen.Dispose();
             matches.Dispose();
 
-            // They are gone (or leaving, which the query excludes), so recount next frame.
+            // They are gone once the barrier plays back, so recount next frame.
             MatchingHouseholds = 0;
             MatchingCitizens = 0;
             m_CountRequested = true;
@@ -343,17 +325,6 @@ namespace CityForgeReborn.Systems
             {
                 if (i > 0) sb.Append(',');
                 AppendHousehold(sb, matches[i]);
-            }
-
-            sb.Append("],\"sent\":[");
-            bool first = true;
-            foreach (var household in m_Sent)
-            {
-                if (!EntityManager.Exists(household) || EntityManager.HasComponent<Deleted>(household))
-                    continue;
-                if (!first) sb.Append(',');
-                first = false;
-                AppendHousehold(sb, household);
             }
 
             sb.Append("]}");

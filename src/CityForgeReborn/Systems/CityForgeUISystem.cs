@@ -94,7 +94,6 @@ namespace CityForgeReborn.Systems
                 s.ExodusEducation = v & ExodusSystem.kAllLevels;
                 m_Exodus.RequestCount();
             });
-            RegisterBool("exodusMoveAway", () => s.ExodusMoveAway, v => s.ExodusMoveAway = v);
             RegisterInt("exodusPercent", () => s.ExodusPercent, v => s.ExodusPercent = math.clamp(v, 1, 100));
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "exodusHouseholds", () => m_Exodus.MatchingHouseholds));
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "exodusCitizens", () => m_Exodus.MatchingCitizens));

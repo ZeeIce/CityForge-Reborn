@@ -102,7 +102,6 @@ namespace CityForgeReborn
 
         // Unemployed exodus: education levels as bits (1 = uneducated ... 16 = highly educated).
         [SettingsUIHidden] public int ExodusEducation { get; set; }
-        [SettingsUIHidden] public bool ExodusMoveAway { get; set; }
         /// <summary>Share of matching households a run takes, 1–100 %, picked at random.</summary>
         [SettingsUIHidden] public int ExodusPercent { get; set; }
 
@@ -196,7 +195,6 @@ namespace CityForgeReborn
             MaxEducation = false;
 
             ExodusEducation = 1;
-            ExodusMoveAway = false;
             ExodusPercent = 50;
 
             EducationUneducated = 10;

@@ -211,7 +211,6 @@ export const PeopleTab = () => {
     );
 };
 
-const EXODUS_MODES = ["Remove instantly", "Move away"];
 const EDUCATION_SHORT = ["Uneducated", "Poorly educated", "Educated", "Well educated", "Highly educated"];
 
 interface ExodusMember { name: string; age: string; edu: number; status: string }
@@ -219,7 +218,6 @@ interface ExodusHousehold { i: number; v: number; home: string; members: ExodusM
 interface ExodusReport {
     levels?: { adults: number; jobless: number; matched: number }[];
     list?: ExodusHousehold[];
-    sent?: ExodusHousehold[];
 }
 
 function parseReport(json: string): ExodusReport {
@@ -234,20 +232,18 @@ function parseReport(json: string): ExodusReport {
 const share = (count: number, pct: number) => (count <= 0 ? 0 : Math.max(1, Math.min(count, Math.round((count * pct) / 100))));
 
 /**
- * Sends away households where no one has a job and no adult is in college, laid out as
- * one sentence: apply to [N%] of households that are jobless and [education], [how].
+ * Removes households where no one has a job and no adult is in college, laid out as
+ * one sentence: remove [N%] of households that are jobless and [education].
  * Mounted only while its card is open, so the city is only scanned when someone looks.
  */
 const Exodus = () => {
     const [mask, setMask] = useInt("exodusEducation", 1);
-    const [moveAway, setMoveAway] = useBool("exodusMoveAway");
     const [pct, setPct] = useInt("exodusPercent", 50);
     const households = useReadOnlyInt("exodusHouseholds", -1);
     const residents = useReadOnlyInt("exodusCitizens");
     const result = useReadOnlyString("exodusResult");
     const report = parseReport(useReadOnlyString("exodusReport", "{}"));
     const listed = report.list ?? [];
-    const sent = report.sent ?? [];
     const [armed, setArmed] = useState(false);
 
     useEffect(() => actions.refreshExodus(), []);
@@ -262,13 +258,12 @@ const Exodus = () => {
         fn(v);
     };
     const take = share(households, pct);
-    const verb = moveAway ? "Send away" : "Remove";
     const ready = households > 0 && mask !== 0;
 
     return (
         <>
             <div className="cf-row__hint">
-                Clears out households where no one has a job and no adult is in college. Whole households leave together, kids at
+                Clears out households where no one has a job and no adult is in college. Whole households go together, kids at
                 school included; retirees are never touched.
             </div>
 
@@ -286,7 +281,7 @@ const Exodus = () => {
                         <span className="cf-ex-table__level">Adults</span>
                         <span>In city</span>
                         <span>No job</span>
-                        <span>Would leave</span>
+                        <span>Would go</span>
                     </div>
                     {report.levels.map((l, i) => (
                         <div key={i} className={`cf-ex-table__row${mask & (1 << i) ? " cf-ex-table__row--on" : ""}`}>
@@ -297,7 +292,7 @@ const Exodus = () => {
                         </div>
                     ))}
                     <div className="cf-row__hint">
-                        "No job" means no job and not in college. "Would leave" counts only those whose whole household
+                        "No job" means no job and not in college. "Would go" counts only those whose whole household
                         qualifies: anyone living with a worker stays.
                     </div>
                 </div>
@@ -306,13 +301,9 @@ const Exodus = () => {
             <div className="cf-ex-step">2 · How many</div>
             <Slider label="Share of matching households, picked at random" value={pct} min={1} max={100} format={percent} onCommit={disarm(setPct)} />
             <div className="cf-row__hint">Run it a few times at a lower share to thin them out gradually.</div>
-
-            <div className="cf-ex-step">3 · How they go</div>
-            <Segmented options={EXODUS_MODES} value={moveAway ? 1 : 0} onChange={(i) => disarm(setMoveAway)(i === 1)} />
             <div className="cf-row__hint cf-spaced">
-                {moveAway
-                    ? "They pack up and leave the normal way, by car, bus, train or plane, so expect busier roads and transit for a while. Follow them from the list once they're sent."
-                    : "They vanish on the spot. The game's own clean-up removes their cars, bikes and pets, frees school places and hospital beds, and puts the home back on the market."}
+                They vanish on the spot. The game's own clean-up removes their cars, bikes and pets, frees school places and
+                hospital beds, and puts the home back on the market.
             </div>
 
             <div className="cf-exodus__count">
@@ -320,11 +311,11 @@ const Exodus = () => {
                     ? "Counting…"
                     : mask === 0
                     ? "Pick at least one education level."
-                    : `${verb} ${take.toLocaleString()} of ${households.toLocaleString()} matching households (${pct}%) · ${residents.toLocaleString()} residents match in total`}
+                    : `Remove ${take.toLocaleString()} of ${households.toLocaleString()} matching households (${pct}%) · ${residents.toLocaleString()} residents match in total`}
             </div>
             <ButtonRow>
                 <Button
-                    label={armed ? `Click again to ${verb.toLowerCase()} ${take.toLocaleString()} households` : `${verb} ${take.toLocaleString()} households`}
+                    label={armed ? `Click again to remove ${take.toLocaleString()} households` : `Remove ${take.toLocaleString()} households`}
                     variant={armed ? "negative" : "accent"}
                     disabled={!ready}
                     onClick={() => {
@@ -336,12 +327,10 @@ const Exodus = () => {
                 <Button label="Recount" onClick={actions.refreshExodus} />
             </ButtonRow>
             {result && <Notice text={result} />}
-            {sent.length > 0 && <HouseholdList title="On their way out" households={sent} follow />}
             {listed.length > 0 && (
                 <HouseholdList
                     title={households > listed.length ? `Who matches (first ${listed.length} of ${households.toLocaleString()})` : "Who matches"}
                     households={listed}
-                    actionLabel={verb}
                 />
             )}
         </>
@@ -349,30 +338,18 @@ const Exodus = () => {
 };
 
 /**
- * Households and their members. Show/Follow selects one and points the camera at them;
- * the action button removes or sends away just that household.
+ * Households and their members. Show selects one and points the camera at them;
+ * Remove takes out just that household.
  */
-const HouseholdList = ({
-    title,
-    households,
-    follow,
-    actionLabel,
-}: {
-    title: string;
-    households: ExodusHousehold[];
-    follow?: boolean;
-    actionLabel?: string;
-}) => (
+const HouseholdList = ({ title, households }: { title: string; households: ExodusHousehold[] }) => (
     <div className="cf-ex-list">
         <div className="cf-pin-group">{title}</div>
         {households.map((h) => (
             <div key={`${h.i}:${h.v}`} className="cf-ex-house">
                 <div className="cf-ex-house__head">
                     <span className="cf-ex-house__home">{h.home}</span>
-                    <div className="cf-ex-house__go" onClick={() => actions.focusExodus(h.i, h.v)}>{follow ? "Follow" : "Show"}</div>
-                    {actionLabel && (
-                        <div className="cf-ex-house__go cf-ex-house__go--act" onClick={() => actions.exodusOne(h.i, h.v)}>{actionLabel}</div>
-                    )}
+                    <div className="cf-ex-house__go" onClick={() => actions.focusExodus(h.i, h.v)}>Show</div>
+                    <div className="cf-ex-house__go cf-ex-house__go--act" onClick={() => actions.exodusOne(h.i, h.v)}>Remove</div>
                 </div>
                 {h.members.map((m, j) => (
                     <div key={j} className="cf-ex-member">
