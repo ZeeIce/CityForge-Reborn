@@ -24,6 +24,11 @@ namespace CityForgeReborn.Systems
     /// HouseholdAndCitizenRemoveSystem then removes the residents and frees their home,
     /// school seats, cars and pets. "Move away" adds MovingAway, the same flag the game
     /// sets for unhappy households, so they leave by the normal route.
+    /// Both go through the EndFrameBarrier, like the game's own move-away code. This
+    /// system runs after the frame's modification phases, and clean-up destroys every
+    /// Deleted entity at the end of the frame, so a Deleted added here directly would
+    /// destroy the household before HouseholdAndCitizenRemoveSystem saw it, leaving its
+    /// citizens pointing at a missing household and crashing the simulation.
     /// Each scan also builds a report for the panel: a breakdown per education level and
     /// a sample of the matching households, so players can see who is going.
     /// Runs on request only, in the UI phase so it also works while the game is paused.
@@ -41,6 +46,11 @@ namespace CityForgeReborn.Systems
         private EntityQuery m_HouseholdQuery;
         private NameSystem m_Names;
         private SelectedInfoUISystem m_SelectedInfo;
+        private EndFrameBarrier m_EndFrameBarrier;
+        // Households queued on the barrier but not yet changed; kept out of scans until then.
+        private readonly HashSet<Entity> m_Pending = new HashSet<Entity>();
+        // Single households picked in the panel, applied in OnUpdate where the barrier is open.
+        private readonly List<Entity> m_OneRequested = new List<Entity>();
         private bool m_CountRequested;
         private bool m_RunRequested;
         // Households sent away by the last "Move away" run, so they can be followed.
@@ -58,6 +68,7 @@ namespace CityForgeReborn.Systems
             base.OnCreate();
             m_Names = World.GetOrCreateSystemManaged<NameSystem>();
             m_SelectedInfo = World.GetOrCreateSystemManaged<SelectedInfoUISystem>();
+            m_EndFrameBarrier = World.GetOrCreateSystemManaged<EndFrameBarrier>();
             m_HouseholdQuery = GetEntityQuery(
                 ComponentType.ReadOnly<Household>(),
                 ComponentType.ReadOnly<HouseholdCitizen>(),
@@ -76,13 +87,19 @@ namespace CityForgeReborn.Systems
         public static int Share(int count, int percent) =>
             count == 0 ? 0 : System.Math.Max(1, System.Math.Min(count, (int)System.Math.Round(count * percent / 100.0)));
 
-        /// <summary>Sends away (or removes) one household picked from the panel's list.</summary>
+        /// <summary>Queues one household picked from the panel's list; handled in <see cref="OnUpdate"/>.</summary>
         public void ApplyOne(int index, int version)
         {
-            var household = new Entity { Index = index, Version = version };
-            if (!GameManager.instance.gameMode.IsGame() || !EntityManager.Exists(household) ||
+            m_OneRequested.Add(new Entity { Index = index, Version = version });
+        }
+
+        /// <summary>Sends away (or removes) one household from the panel's list.</summary>
+        private void ApplyQueuedOne(Entity household)
+        {
+            if (!EntityManager.Exists(household) ||
                 !EntityManager.HasBuffer<HouseholdCitizen>(household) ||
-                EntityManager.HasComponent<Deleted>(household) || EntityManager.HasComponent<MovingAway>(household))
+                EntityManager.HasComponent<Deleted>(household) || EntityManager.HasComponent<MovingAway>(household) ||
+                m_Pending.Contains(household))
                 return;
 
             var one = new NativeArray<Entity>(1, Allocator.Temp);
@@ -114,19 +131,21 @@ namespace CityForgeReborn.Systems
                 }
             }
 
-            if (moveAway)
+            var buffer = m_EndFrameBarrier.CreateCommandBuffer();
+            foreach (var household in households)
             {
-                foreach (var household in households)
+                m_Pending.Add(household);
+                if (moveAway)
                 {
-                    EntityManager.AddComponentData(household, new MovingAway { m_Reason = MoveAwayReason.NotHappy });
+                    buffer.AddComponent(household, new MovingAway { m_Reason = MoveAwayReason.NotHappy });
                     m_Sent.Insert(0, household);
                     if (m_Sent.Count > kListed)
                         m_Sent.RemoveAt(kListed);
                 }
-            }
-            else if (households.Length > 0)
-            {
-                EntityManager.AddComponent<Deleted>(households);
+                else
+                {
+                    buffer.AddComponent<Deleted>(household);
+                }
             }
 
             string verb = moveAway ? "sent away" : "removed";
@@ -161,7 +180,7 @@ namespace CityForgeReborn.Systems
 
         protected override void OnUpdate()
         {
-            if (!m_CountRequested && !m_RunRequested)
+            if (!m_CountRequested && !m_RunRequested && m_OneRequested.Count == 0)
                 return;
 
             bool run = m_RunRequested;
@@ -171,8 +190,20 @@ namespace CityForgeReborn.Systems
             {
                 MatchingHouseholds = -1;
                 m_Sent.Clear();
+                m_Pending.Clear();
+                m_OneRequested.Clear();
                 return;
             }
+
+            foreach (var household in m_OneRequested)
+                ApplyQueuedOne(household);
+            m_OneRequested.Clear();
+
+            // Queued changes land at the start of the next frame; until then keep counting.
+            m_Pending.RemoveWhere(h => !EntityManager.Exists(h) ||
+                EntityManager.HasComponent<Deleted>(h) || EntityManager.HasComponent<MovingAway>(h));
+            if (m_Pending.Count > 0)
+                m_CountRequested = true;
 
             var s = Mod.Settings;
             int mask = s.ExodusEducation & kAllLevels;
@@ -228,7 +259,8 @@ namespace CityForgeReborn.Systems
             using var households = m_HouseholdQuery.ToEntityArray(Allocator.Temp);
             foreach (var household in households)
             {
-                if ((EntityManager.GetComponentData<Household>(household).m_Flags & HouseholdFlags.MovedIn) == 0)
+                if ((EntityManager.GetComponentData<Household>(household).m_Flags & HouseholdFlags.MovedIn) == 0 ||
+                    m_Pending.Contains(household))
                     continue;
 
                 var members = EntityManager.GetBuffer<HouseholdCitizen>(household, true);
