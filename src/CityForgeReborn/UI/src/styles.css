@@ -176,6 +176,31 @@
     opacity: 1;
 }
 
+.cf-ach {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-size: 13rem;
+    font-weight: bold;
+    color: #ff9c8c;
+}
+
+.cf-ach--on {
+    color: #7ee2a8;
+}
+
+.cf-ach__dot {
+    width: 8rem;
+    height: 8rem;
+    margin-right: 8rem;
+    border-radius: 4rem;
+    background-color: #ff9c8c;
+}
+
+.cf-ach--on .cf-ach__dot {
+    background-color: #7ee2a8;
+}
+
 .cf-hotkey {
     display: flex;
     flex-direction: row;

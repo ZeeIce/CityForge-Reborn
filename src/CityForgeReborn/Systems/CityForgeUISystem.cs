@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Colossal.PSI.Common;
 using Colossal.Serialization.Entities;
 using Colossal.UI.Binding;
 using Game;
@@ -131,6 +132,9 @@ namespace CityForgeReborn.Systems
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "currentMilestone", () => m_Milestones.CurrentMilestone));
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "maxMilestone", () => m_Milestones.MaxMilestone));
             AddUpdateBinding(new GetterValueBinding<int>(kGroup, "togglePanel", () => m_TogglePresses));
+            // The game's own warnings only look at whether mods are used, so the panel shows the real flag.
+            AddUpdateBinding(new GetterValueBinding<bool>(kGroup, "achievementsActive", () => PlatformManager.instance.achievementsEnabled));
+            AddUpdateBinding(new GetterValueBinding<bool>(kGroup, "keepAchievements", () => s.KeepAchievementsEnabled));
 
             m_ToggleAction = s.GetAction(CityForgeSetting.kTogglePanelAction);
             m_ToggleAction.shouldBeEnabled = true;

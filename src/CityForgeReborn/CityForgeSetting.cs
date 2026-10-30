@@ -260,7 +260,7 @@ namespace CityForgeReborn
                 { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.ShowStatusBar)), "Show an icon under the CityForge button for every cheat that is on, plus any you pin. Click an icon to switch that cheat." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.KeepAchievementsEnabled)), "Keep achievements enabled" },
-                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.KeepAchievementsEnabled)), "Allow Steam/Paradox achievements to unlock while mods are active. Can only be changed from the main menu, before a city is loaded." },
+                { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.KeepAchievementsEnabled)), "Let achievements unlock while mods are active. The game will still warn that mods turn achievements off; with this on they unlock anyway, and the CityForge panel's Settings tab shows whether they are active. Can only be changed from the main menu, before a city is loaded." },
 
                 { m_Setting.GetOptionLabelLocaleID(nameof(CityForgeSetting.TogglePanelBinding)), "Open or close the panel" },
                 { m_Setting.GetOptionDescLocaleID(nameof(CityForgeSetting.TogglePanelBinding)), "Keyboard shortcut for the CityForge panel while in a city. You can also change it from the panel's Settings tab." },

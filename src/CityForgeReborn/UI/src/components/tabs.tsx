@@ -438,6 +438,31 @@ export const DEFAULT_PANEL_COLOR = "#161b22";
 const PRESETS = [DEFAULT_PANEL_COLOR, "#1e1b2e", "#13221c", "#2a1a14", "#0f1f2e", "#26222a", "#1a1a1a", "#2b2410"];
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
+/**
+ * Live achievement state. The game's load screen and Achievements tab warn about mods
+ * whenever any are used, even while achievements are actually on, so this reads the real flag.
+ */
+const Achievements = () => {
+    const [active] = useBool("achievementsActive");
+    const [keep] = useBool("keepAchievements");
+
+    return (
+        <Card title="Achievements" icon="★">
+            <div className={`cf-ach${active ? " cf-ach--on" : ""}`}>
+                <span className="cf-ach__dot" />
+                {active ? "Achievements are active" : "Achievements are off"}
+            </div>
+            <div className="cf-row__hint cf-spaced">
+                {active
+                    ? "They unlock and track progress as normal. The game still warns that mods turn achievements off; you can ignore that warning."
+                    : keep
+                    ? "Keep achievements enabled is on, but the game still has them off. Please report this on the mod page with your CityForgeReborn.Mod.log."
+                    : "Turn on Keep achievements enabled in Options → CityForge Reborn. It can only be changed from the main menu, so save and exit first."}
+            </div>
+        </Card>
+    );
+};
+
 export const SettingsTab = () => {
     const [color, setColor] = useString("panelColor", DEFAULT_PANEL_COLOR);
     const [resetOnLoad, setResetOnLoad] = useBool("resetCheatsOnLoad");
@@ -460,6 +485,7 @@ export const SettingsTab = () => {
                     onChange={setResetOnLoad}
                 />
             </Card>
+            <Achievements />
             <Card title="Hotkey" icon="✦">
                 <div className="cf-row__hint">Opens or closes this panel while you are in a city.</div>
                 <div className="cf-hotkey">
